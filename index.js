@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 const Database = require('./database');
 const { GameManager } = require('./gameManager');
 const GameUI = require('./gameUI');
@@ -21,24 +21,24 @@ const commands = [
   new SlashCommandBuilder()
     .setName('play')
     .setDescription('Start a new Tower of Cash game'),
-  
+
   new SlashCommandBuilder()
     .setName('leaderboard')
     .setDescription('View the Tower of Cash leaderboard'),
-  
+
   new SlashCommandBuilder()
     .setName('stats')
     .setDescription('View your Tower of Cash statistics'),
-  
+
   new SlashCommandBuilder()
     .setName('help')
     .setDescription('Learn how to play Tower of Cash'),
-  
+
   new SlashCommandBuilder()
     .setName('config')
     .setDescription('Configure game amounts (Admin only)')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-  
+
   new SlashCommandBuilder()
     .setName('grantplay')
     .setDescription('Grant bonus plays to a user (Admin only)')
@@ -53,7 +53,7 @@ const commands = [
         .setMinValue(1)
         .setMaxValue(100))
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-  
+
   new SlashCommandBuilder()
     .setName('stopgame')
     .setDescription('Force stop a game (Admin only)')
@@ -66,21 +66,21 @@ const commands = [
           { name: 'All Games', value: 'all' }
         ))
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-  
+
   new SlashCommandBuilder()
     .setName('intro')
     .setDescription('Show Tower of Cash game introduction'),
-  
+
   new SlashCommandBuilder()
     .setName('reset')
     .setDescription('Reset all progress in this server (Admin only)')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-  
+
   new SlashCommandBuilder()
     .setName('archive')
     .setDescription('Archive leaderboard to toc-archive channel and reset (Admin only)')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-  
+
   new SlashCommandBuilder()
     .setName('clear')
     .setDescription('Clear all messages in the channel (Admin only)')
@@ -90,7 +90,7 @@ const commands = [
         .setMinValue(1)
         .setMaxValue(100))
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-  
+
   new SlashCommandBuilder()
     .setName('setchannel')
     .setDescription('Set which channel(s) can be used for playing (Admin only)')
@@ -107,12 +107,12 @@ const commands = [
           { name: 'Remove', value: 'remove' }
         ))
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-  
+
   new SlashCommandBuilder()
     .setName('listchannels')
     .setDescription('List all channels allowed for playing (Admin only)')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-  
+
   new SlashCommandBuilder()
     .setName('checkdaily')
     .setDescription('Check your remaining plays and time until daily reset')
@@ -129,14 +129,14 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName('event-mode')
-    .setDescription('Enable or disable event mode (Admin only)')
+    .setDescription('Enable or disable Season 1 Mode (28 floors, new minigames) (Admin only)')
     .addStringOption(option =>
       option.setName('action')
-        .setDescription('Enable or disable event mode')
+        .setDescription('Enable Season 1 Mode or return to Normal Mode')
         .setRequired(true)
         .addChoices(
-          { name: 'Enable', value: 'enable' },
-          { name: 'Disable', value: 'disable' }
+          { name: 'Enable Season 1', value: 'enable' },
+          { name: 'Disable (Normal Mode)', value: 'disable' }
         ))
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
@@ -147,7 +147,47 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName('current-mode')
-    .setDescription('Check the current game mode (Normal or Event)')
+    .setDescription('Check the current game mode (Normal Mode or Season 1 Mode)'),
+
+  new SlashCommandBuilder()
+    .setName('test-boost')
+    .setDescription('Test Boost Multiplier feature (Admin only)')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName('test-vault')
+    .setDescription('Test The Vault minigame (Admin only)')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName('test-infinity')
+    .setDescription('Test The ∞% minigame (Admin only)')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName('test-megagrid')
+    .setDescription('Test Mega Grid minigame (Admin only)')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName('test-hideout')
+    .setDescription('Test Hideout Breakthrough minigame (Admin only)')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName('test-babushka')
+    .setDescription('Test Babushka minigame (Admin only)')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName('test-boilingpoint')
+    .setDescription('Test Boiling Point minigame (Admin only)')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName('test-roshambo')
+    .setDescription('Test Operator Roshambo minigame (Admin only)')
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 ].map(command => command.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
@@ -169,7 +209,7 @@ const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 client.once('ready', () => {
   console.log(`✅ Logged in as ${client.user.tag}!`);
   console.log('🎮 Tower of Cash bot is ready!');
-  
+
   // Set bot status
   client.user.setPresence({
     activities: [{
@@ -189,6 +229,204 @@ client.on('error', (error) => {
 client.on('shardError', (error) => {
   console.error('❌ WebSocket connection error:', error);
 });
+
+// Handle messages for game commands (like STOP for Mega Grid)
+client.on('messageCreate', async (message) => {
+  // Ignore bot messages
+  if (message.author.bot) return;
+
+  const game = gameManager.getGame(message.channelId);
+  if (!game) return;
+
+  // Only respond to the player's messages
+  if (game.userId !== message.author.id) return;
+
+  const content = message.content.trim().toUpperCase();
+
+  // Handle STOP command for Mega Grid cashout
+  if (content === 'STOP' && game.megaGridState && game.megaGridState.isActive && game.megaGridState.currentRound > 0) {
+    try {
+      // Cash out the player
+      game.megaGridState.isActive = false;
+      game.totalMoney += game.megaGridState.accumulatedReward;
+
+      const resultEmbed = GameUI.createMegaGridResultEmbed(game, 'cashout');
+      await message.channel.send({ embeds: [resultEmbed] });
+
+      // Show full grid reveal
+      const unpickedEmbed = GameUI.createMegaGridUnpickedEmbed(game);
+      await message.channel.send({ embeds: [unpickedEmbed] });
+
+      // Continue game
+      const continueButtons = GameUI.createContinueButton();
+      await message.channel.send({ content: '➡️ **Moving to next floor...**', components: continueButtons });
+    } catch (error) {
+      console.error('Error handling STOP command:', error);
+    }
+  }
+});
+
+// === BOILING POINT HANDLERS ===
+
+async function handleBoilingPointMinigame(interaction, game) {
+  game.startBoilingPoint();
+
+  const embed = GameUI.createBoilingPointIntroEmbed(game);
+  const buttons = GameUI.createBoilingPointButtons(game, true);
+
+  await interaction.followUp({ embeds: [embed], components: buttons });
+}
+
+async function handleTestBoilingPoint(interaction) {
+  await interaction.deferReply();
+
+  const game = gameManager.getGame(interaction.channelId);
+  if (!game) {
+    const testGame = await gameManager.createGame(interaction.user.id, interaction.user.username, interaction.channelId, interaction.guildId, db);
+    testGame.totalMoney = 50000;
+
+    // Start Boiling Point
+    testGame.startBoilingPoint();
+
+    const embed = GameUI.createBoilingPointIntroEmbed(testGame);
+    const buttons = GameUI.createBoilingPointButtons(testGame, true);
+
+    await interaction.editReply({ embeds: [embed], components: buttons });
+  } else {
+    await interaction.editReply({ content: '❌ A game is already active. Use `/stopgame` first.' });
+  }
+}
+
+// === OPERATOR ROSHAMBO HANDLERS ===
+
+async function handleOperatorRoshamboMinigame(interaction, game) {
+  game.startOperatorRoshambo();
+
+  const embed = GameUI.createOperatorRoshamboIntroEmbed(game);
+  const buttons = GameUI.createOperatorRoshamboButtons(game, true);
+
+  await interaction.followUp({ embeds: [embed], components: buttons });
+}
+
+async function handleOperatorRoshamboStart(interaction, game) {
+  const embed = GameUI.createOperatorRoshamboRoundEmbed(game);
+  const buttons = GameUI.createOperatorRoshamboButtons(game);
+
+  await interaction.update({ embeds: [embed], components: buttons });
+}
+
+async function handleOperatorRoshamboChoice(interaction, game, choice) {
+  // Show "Operator is choosing..." message
+  await interaction.update({ content: '🤔 Operator is choosing...', embeds: [], components: [] });
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
+  const result = game.playOperatorRoshamboRound(choice);
+
+  if (!result) return;
+
+  const resultEmbed = GameUI.createOperatorRoshamboResultEmbed(game, result);
+
+  if (result.gameOver) {
+    await interaction.editReply({ content: '', embeds: [resultEmbed], components: [] });
+
+    // Continue game
+    const continueButtons = GameUI.createContinueButton();
+    await interaction.followUp({ content: '➡️ **Moving to next floor...**', components: continueButtons });
+  } else {
+    // Show result briefly
+    await interaction.editReply({ content: '', embeds: [resultEmbed], components: [] });
+
+    // Wait a bit
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Show next round
+    const nextEmbed = GameUI.createOperatorRoshamboRoundEmbed(game);
+    const nextButtons = GameUI.createOperatorRoshamboButtons(game);
+    await interaction.followUp({ embeds: [nextEmbed], components: nextButtons });
+  }
+}
+
+async function handleTestRoshambo(interaction) {
+  await interaction.deferReply();
+
+  const game = gameManager.getGame(interaction.channelId);
+  if (!game) {
+    const testGame = await gameManager.createGame(interaction.user.id, interaction.user.username, interaction.channelId, interaction.guildId, db);
+    testGame.totalMoney = 50000;
+
+    // Start Operator Roshambo
+    testGame.startOperatorRoshambo();
+
+    const embed = GameUI.createOperatorRoshamboIntroEmbed(testGame);
+    const buttons = GameUI.createOperatorRoshamboButtons(testGame, true);
+
+    await interaction.editReply({ embeds: [embed], components: buttons });
+  } else {
+    await interaction.editReply({ content: '❌ A game is already active. Use `/stopgame` first.' });
+  }
+}
+
+// === MYSTERY BOX HANDLERS ===
+
+async function handleMysteryBoxMinigame(interaction, game) {
+  game.startMysteryBox();
+
+  const embed = GameUI.createMysteryBoxIntroEmbed(game);
+  const buttons = GameUI.createMysteryBoxSelectionButtons(game);
+
+  await interaction.followUp({ embeds: [embed], components: buttons });
+}
+
+async function handleMysteryBoxSelection(interaction, game, boxIndex) {
+  // Show "Opening other boxes..." suspense
+  await interaction.update({ content: '📦 Opening the other boxes...', embeds: [], components: [] });
+  await new Promise(resolve => setTimeout(resolve, 2000));
+
+  const result = game.selectMysteryBox(boxIndex);
+
+  if (!result) return;
+
+  // FOMO Reveal - Show what was in the other boxes
+  const fomoEmbed = GameUI.createMysteryBoxFOMOEmbed(game, result.unselectedBoxes, boxIndex);
+  await interaction.editReply({ content: '', embeds: [fomoEmbed], components: [] });
+
+  // Dramatic pause
+  await new Promise(resolve => setTimeout(resolve, 2500));
+
+  // Show selected box result
+  const resultEmbed = GameUI.createMysteryBoxResultEmbed(game, result.selectedItem, boxIndex);
+  await interaction.followUp({ embeds: [resultEmbed] });
+
+  // Continue game
+  const continueButtons = GameUI.createContinueButton();
+  await interaction.followUp({ content: '➡️ **Moving to next floor...**', components: continueButtons });
+}
+
+// === RANDOM PERCENTAGE HANDLER ===
+
+async function handleRandomPercentage(interaction, game) {
+  // Generate random percentage from -150% to +150%
+  const percentage = Math.floor(Math.random() * 301) - 150; // -150 to +150
+
+  // Show suspense
+  await interaction.update({ content: '🎲 Rolling the percentage dice...', embeds: [], components: [] });
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
+  // Apply percentage
+  const multiplier = 1 + (percentage / 100);
+  game.totalMoney = Math.floor(game.totalMoney * multiplier);
+
+  // Ensure money doesn't go below 0
+  if (game.totalMoney < 0) game.totalMoney = 0;
+
+  // Show result
+  const embed = GameUI.createRandomPercentageEmbed(game, percentage);
+  await interaction.editReply({ content: '', embeds: [embed], components: [] });
+
+  // Continue game
+  const continueButtons = GameUI.createContinueButton();
+  await interaction.followUp({ content: '➡️ **Moving to next floor...**', components: continueButtons });
+}
 
 // Handle slash commands
 client.on('interactionCreate', async (interaction) => {
@@ -233,6 +471,22 @@ client.on('interactionCreate', async (interaction) => {
       await handleRevealFloorCommand(interaction);
     } else if (commandName === 'current-mode') {
       await handleCurrentModeCommand(interaction);
+    } else if (commandName === 'test-boost') {
+      await handleTestBoostCommand(interaction);
+    } else if (commandName === 'test-vault') {
+      await handleTestVaultCommand(interaction);
+    } else if (commandName === 'test-infinity') {
+      await handleTestInfinityCommand(interaction);
+    } else if (commandName === 'test-megagrid') {
+      await handleTestMegaGridCommand(interaction);
+    } else if (commandName === 'test-hideout') {
+      await handleTestHideoutCommand(interaction);
+    } else if (interaction.commandName === 'test-babushka') {
+      await handleTestBabushka(interaction);
+    } else if (interaction.commandName === 'test-boilingpoint') {
+      await handleTestBoilingPoint(interaction);
+    } else if (interaction.commandName === 'test-roshambo') {
+      await handleTestRoshambo(interaction);
     }
   } catch (error) {
     console.error('Error handling command:', error);
@@ -249,8 +503,8 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 function isAdmin(member) {
-  return member.permissions.has(PermissionFlagsBits.Administrator) || 
-         member.roles.cache.some(role => role.name === '💻 Owner');
+  return member.permissions.has(PermissionFlagsBits.Administrator) ||
+    member.roles.cache.some(role => role.name === '💻 Owner');
 }
 
 async function handlePlayCommand(interaction) {
@@ -269,7 +523,7 @@ async function handlePlayCommand(interaction) {
 
   // Admins have unlimited plays
   const hasAdminRole = isAdmin(member);
-  
+
   // Check daily play limit (skip for admins)
   if (!hasAdminRole) {
     const canPlay = await db.canPlayToday(user.id, interaction.guildId);
@@ -279,13 +533,13 @@ async function handlePlayCommand(interaction) {
       const tomorrow = new Date(now);
       tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
       tomorrow.setUTCHours(0, 0, 0, 0);
-      
+
       const timeLeft = tomorrow - now;
       const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
       const minutesLeft = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-      
-      return interaction.reply({ 
-        content: `❌ You've reached your daily play limit (2 plays per day).\n\n⏰ **Time until reset:** ${hoursLeft}h ${minutesLeft}m\nCome back tomorrow!`, 
+
+      return interaction.reply({
+        content: `❌ You've reached your daily play limit (2 plays per day).\n\n⏰ **Time until reset:** ${hoursLeft}h ${minutesLeft}m\nCome back tomorrow!`,
         flags: 64
       });
     }
@@ -305,10 +559,10 @@ async function handlePlayCommand(interaction) {
   // Get player stats for profile embed
   const playerStats = await db.getPlayerStats(user.id, interaction.guildId);
   const remainingPlays = hasAdminRole ? '∞ (Admin)' : await db.getRemainingPlays(user.id, interaction.guildId);
-  
+
   // Game starts immediately with Round 1 floor selection
   const profileEmbed = GameUI.createPlayerProfileEmbed(user, playerStats, remainingPlays, hasAdminRole);
-  const welcomeEmbed = GameUI.createWelcomeEmbed(remainingPlays);
+  const welcomeEmbed = GameUI.createWelcomeEmbed(remainingPlays, game.eventMode);
   const selectionEmbed = GameUI.createFloorSelectionEmbed(game);
   const buttons = GameUI.createFloorSelectionButtons(game);
 
@@ -327,11 +581,11 @@ async function handleStatsCommand(interaction) {
   const stats = await db.getPlayerStats(interaction.user.id, interaction.guildId);
   const hasAdminRole = isAdmin(interaction.member);
   const remainingPlays = hasAdminRole ? '∞ (Admin)' : await db.getRemainingPlays(interaction.user.id, interaction.guildId);
-  
+
   // Fetch recent and top plays
   const recentPlays = await db.getRecentPlays(interaction.user.id, interaction.guildId, 5);
   const topPlays = await db.getTopPlays(interaction.user.id, interaction.guildId, 5);
-  
+
   const embed = GameUI.createStatsEmbed(stats, remainingPlays, hasAdminRole, recentPlays, topPlays, interaction.user);
   await interaction.editReply({ embeds: [embed] });
 }
@@ -340,13 +594,14 @@ async function handleHelpCommand(interaction) {
   await interaction.deferReply();
   const hasAdminRole = isAdmin(interaction.member);
   const remainingPlays = hasAdminRole ? '∞ (Admin)' : await db.getRemainingPlays(interaction.user.id, interaction.guildId);
-  const embed = GameUI.createWelcomeEmbed(remainingPlays);
+  const eventMode = await db.getEventMode(interaction.guildId);
+  const embed = GameUI.createWelcomeEmbed(remainingPlays, eventMode);
   await interaction.editReply({ embeds: [embed] });
 }
 
 async function handleConfigCommand(interaction) {
-  await interaction.reply({ 
-    content: '⚙️ Game configuration can be edited in the `config.json` file.\n\nYou can modify:\n• Game amounts and rewards\n• Max plays per day\n• Floor counts per round\n\n**Admin Commands:**\n• `/grantplay` - Grant bonus plays to users\n• `/stopgame` - Force stop games (current channel or all)', 
+  await interaction.reply({
+    content: '⚙️ Game configuration can be edited in the `config.json` file.\n\nYou can modify:\n• Game amounts and rewards\n• Max plays per day\n• Floor counts per round\n\n**Admin Commands:**\n• `/grantplay` - Grant bonus plays to users\n• `/stopgame` - Force stop games (current channel or all)',
     flags: 64
   });
 }
@@ -359,13 +614,13 @@ async function handleIntroCommand(interaction) {
 
 async function handleGrantPlayCommand(interaction) {
   await interaction.deferReply();
-  
+
   const targetUser = interaction.options.getUser('user');
   const amount = interaction.options.getInteger('amount');
 
   try {
     await db.addBonusPlays(targetUser.id, interaction.guildId, amount);
-    
+
     await interaction.editReply({
       content: `✅ Successfully granted **${amount}** bonus play${amount > 1 ? 's' : ''} to ${targetUser.tag}!\n\nThey can now play **${amount}** additional game${amount > 1 ? 's' : ''} today.`
     });
@@ -391,7 +646,7 @@ async function handleStopGameCommand(interaction) {
     if (target === 'channel') {
       // Stop game in current channel
       const game = gameManager.getGame(interaction.channelId);
-      
+
       if (!game) {
         return interaction.reply({
           content: '❌ No active game in this channel.',
@@ -419,7 +674,7 @@ async function handleStopGameCommand(interaction) {
 
       // Get all channel IDs before clearing
       const channels = Array.from(gameManager.activeGames.keys());
-      
+
       // Clear all games
       gameManager.activeGames.clear();
 
@@ -466,8 +721,21 @@ client.on('interactionCreate', async (interaction) => {
   try {
     const customId = interaction.customId;
 
-    if (customId.startsWith('floor_')) {
+    if (customId.startsWith('floor_') && !customId.startsWith('floor_page_')) {
       await handleFloorSelection(interaction, game);
+    } else if (customId === 'floor_page_prev') {
+      // Go to previous page
+      game.floorSelectionPage = Math.max(0, (game.floorSelectionPage || 0) - 1);
+      const embed = GameUI.createFloorSelectionEmbed(game);
+      const buttons = GameUI.createFloorSelectionButtons(game);
+      await interaction.update({ embeds: [embed], components: buttons });
+    } else if (customId === 'floor_page_next') {
+      // Go to next page
+      const maxPages = Math.ceil((game.eventMode ? 28 : 21) / 14);
+      game.floorSelectionPage = Math.min(maxPages - 1, (game.floorSelectionPage || 0) + 1);
+      const embed = GameUI.createFloorSelectionEmbed(game);
+      const buttons = GameUI.createFloorSelectionButtons(game);
+      await interaction.update({ embeds: [embed], components: buttons });
     } else if (customId === 'confirm_floors') {
       await handleConfirmFloors(interaction, game);
     } else if (customId === 'choice_left' || customId === 'choice_right') {
@@ -484,6 +752,62 @@ client.on('interactionCreate', async (interaction) => {
       await handleOperatorAccept(interaction, game);
     } else if (customId === 'operator_decline') {
       await handleOperatorDecline(interaction, game);
+    } else if (customId === 'mega_grid_start') {
+      await handleMegaGridStart(interaction, game);
+    } else if (customId.startsWith('mega_grid_pick_')) {
+      await handleMegaGridPick(interaction, game);
+    } else if (customId === 'infinity_start') {
+      await handleInfinityStart(interaction, game);
+    } else if (customId === 'infinity_left' || customId === 'infinity_right') {
+      await handleInfinityPick(interaction, game, customId === 'infinity_left' ? 'left' : 'right');
+    } else if (customId === 'infinity_stop') {
+      await handleInfinityStop(interaction, game);
+    } else if (customId === 'hideout_start') {
+      await handleHideoutBreakthroughStart(interaction, game);
+    } else if (customId.startsWith('hideout_pick_')) {
+      await handleHideoutBreakthroughPick(interaction, game);
+    } else if (customId === 'babushka_start') {
+      await handleBabushkaStart(interaction, game);
+    } else if (customId.startsWith('babushka_select_')) {
+      await handleBabushkaSelect(interaction, game);
+    } else if (customId === 'babushka_reveal') {
+      await handleBabushkaReveal(interaction, game);
+    } else if (customId === 'babushka_continue') {
+      await handleBabushkaContinue(interaction, game);
+    } else if (customId === 'babushka_bank') {
+      await handleBabushkaBank(interaction, game);
+    } else if (customId === 'babushka_cashout') {
+      await handleBabushkaCashout(interaction, game);
+    } else if (customId === 'boiling_point_start') {
+      await handleBoilingPointStart(interaction, game);
+    } else if (customId === 'boiling_point_hotter') {
+      await handleBoilingPointAction(interaction, game, 'hotter');
+    } else if (customId === 'boiling_point_colder') {
+      await handleBoilingPointAction(interaction, game, 'colder');
+    } else if (customId === 'boiling_point_change') {
+      await handleBoilingPointChange(interaction, game);
+    } else if (customId === 'boiling_point_change_hotter') {
+      await handleBoilingPointChangeAction(interaction, game, 'hotter');
+    } else if (customId === 'boiling_point_change_colder') {
+      await handleBoilingPointChangeAction(interaction, game, 'colder');
+    } else if (customId === 'boiling_point_cancel_change') {
+      await handleBoilingPointCancelChange(interaction, game);
+    } else if (customId === 'operator_roshambo_start') {
+      await handleOperatorRoshamboStart(interaction, game);
+    } else if (customId === 'operator_roshambo_rock') {
+      await handleOperatorRoshamboChoice(interaction, game, 'rock');
+    } else if (customId === 'operator_roshambo_paper') {
+      await handleOperatorRoshamboChoice(interaction, game, 'paper');
+    } else if (customId === 'operator_roshambo_scissors') {
+      await handleOperatorRoshamboChoice(interaction, game, 'scissors');
+    } else if (customId === 'mystery_box_1') {
+      await handleMysteryBoxSelection(interaction, game, 0);
+    } else if (customId === 'mystery_box_2') {
+      await handleMysteryBoxSelection(interaction, game, 1);
+    } else if (customId === 'mystery_box_3') {
+      await handleMysteryBoxSelection(interaction, game, 2);
+    } else if (customId === 'mystery_box_4') {
+      await handleMysteryBoxSelection(interaction, game, 3);
     }
   } catch (error) {
     console.error('Error handling button:', error);
@@ -499,7 +823,7 @@ client.on('interactionCreate', async (interaction) => {
 
 async function handleFloorSelection(interaction, game) {
   const floorNumber = parseInt(interaction.customId.split('_')[1]);
-  
+
   if (game.selectedFloors.includes(floorNumber)) {
     game.removeSelectedFloor(floorNumber);
   } else {
@@ -536,16 +860,16 @@ async function handleConfirmFloors(interaction, game) {
 async function handleSideChoice(interaction, game, choice) {
   const floorNumber = game.getCurrentFloorNumber();
   const choices = game.currentFloorChoices;
-  
+
   const chosenAmount = choice === 'left' ? choices.left : choices.right;
   const lostAmount = choice === 'left' ? choices.right : choices.left;
 
   const moneyBefore = game.totalMoney;
-  
+
   // Mark both amounts as revealed (used)
   game.markAmountUsed(chosenAmount);
   game.markAmountUsed(lostAmount);
-  
+
   // Apply the chosen amount
   const appliedAmount = game.applyAmount(chosenAmount);
   const moneyAfter = game.totalMoney;
@@ -556,10 +880,24 @@ async function handleSideChoice(interaction, game, choice) {
   // Create result embed
   const resultEmbed = GameUI.createResultEmbed(game, floorNumber, choice, appliedAmount, lostAmount, moneyBefore, moneyAfter);
 
-  // Update with result
-  await interaction.update({ embeds: [resultEmbed], components: [] });
+  // Show partial result first (freeze effect)
+  const partialEmbed = GameUI.createPartialResultEmbed(game, floorNumber, choice, appliedAmount, moneyBefore, moneyAfter);
 
-  // Check for event tiles (The Vault, Operator Offer)
+  // Acknowledge interaction immediately if not already done
+  if (!interaction.deferred && !interaction.replied) {
+    await interaction.deferUpdate();
+  }
+
+  // Show partial result
+  await interaction.editReply({ embeds: [partialEmbed], components: [] });
+
+  // Wait for 2 seconds
+  await new Promise(resolve => setTimeout(resolve, 2000));
+
+  // Update with full result
+  await interaction.editReply({ embeds: [resultEmbed], components: [] });
+
+  // Check for event tiles (The Vault, Operator Offer, Mega Grid, Infinity %, Hideout Breakthrough, Babushka)
   if (chosenAmount.type === 'event') {
     if (chosenAmount.action === 'vault') {
       await handleVaultMinigame(interaction, game);
@@ -567,7 +905,34 @@ async function handleSideChoice(interaction, game, choice) {
     } else if (chosenAmount.action === 'operator_offer') {
       await handleOperatorOffer(interaction, game);
       return;
+    } else if (chosenAmount.action === 'mega_grid') {
+      await handleMegaGridMinigame(interaction, game);
+      return;
+    } else if (chosenAmount.action === 'infinity_percent') {
+      await handleInfinityPercentMinigame(interaction, game);
+      return;
+    } else if (chosenAmount.action === 'hideout_breakthrough') {
+      await handleHideoutBreakthroughMinigame(interaction, game);
+      return;
+    } else if (chosenAmount.action === 'babushka') {
+      await handleBabushkaMinigame(interaction, game);
+      return;
+    } else if (chosenAmount.action === 'boiling_point') {
+      await handleBoilingPointMinigame(interaction, game);
+      return;
+    } else if (chosenAmount.action === 'operator_roshambo') {
+      await handleOperatorRoshamboMinigame(interaction, game);
+      return;
+    } else if (chosenAmount.action === 'mystery_box') {
+      await handleMysteryBoxMinigame(interaction, game);
+      return;
     }
+  }
+
+  // Check for special tiles (Random %)
+  if (chosenAmount.type === 'special' && chosenAmount.action === 'random_percentage') {
+    await handleRandomPercentage(interaction, game);
+    return;
   }
 
   // Check for game ending conditions
@@ -586,20 +951,20 @@ async function handleSideChoice(interaction, game, choice) {
   // X Level - mark that the last floor will be skipped (player continues playing until reaching it)
   if (chosenAmount.type === 'special' && chosenAmount.action === 'x_level') {
     const isLastFloorInRound = game.currentFloor >= game.selectedFloors.length - 1;
-    
+
     if (!isLastFloorInRound) {
       // Get the last floor in the selected floors
       const lastFloorIndex = game.selectedFloors.length - 1;
       const lastFloorNum = game.selectedFloors[lastFloorIndex];
       const lastFloorChoices = game.preGeneratedFloors[lastFloorNum];
-      
+
       // Store info about which floor will be skipped
       game.xLevelSkippedFloor = {
         floorNum: lastFloorNum,
         left: lastFloorChoices.left,
         right: lastFloorChoices.right
       };
-      
+
       // Mark the amounts from skipped floor as used/removed
       const leftKey = game.getAmountKey(lastFloorChoices.left);
       const rightKey = game.getAmountKey(lastFloorChoices.right);
@@ -628,23 +993,23 @@ async function handleContinue(interaction, game) {
     // Show the skipped floor
     const skippedEmbed = GameUI.createSkippedFloorsEmbed([game.xLevelSkippedFloor]);
     await interaction.update({ embeds: [skippedEmbed], components: [] });
-    
+
     // Clear X Level flag
     game.xLevelSkippedFloor = null;
-    
+
     // Skip this floor and move to next
     game.moveToNextFloor();
-    
+
     // Check if game is complete after skipping
     if (game.isGameComplete()) {
       // Save to database
       await db.updatePlayerStats(game.userId, interaction.guildId, game.username, game.totalMoney, game.floorsCompleted, true);
       await db.saveGameHistory(game.userId, interaction.guildId, game.username, game.totalMoney, game.floorsCompleted, 'completed');
-      
+
       // Show completion message
       const endEmbed = GameUI.createGameEndEmbed(game, 'completed', game.totalMoney);
       await interaction.followUp({ embeds: [endEmbed], components: [] });
-      
+
       // End the game
       gameManager.endGame(interaction.channelId);
       return;
@@ -667,11 +1032,11 @@ async function handleContinue(interaction, game) {
       // Save to database
       await db.updatePlayerStats(game.userId, interaction.guildId, game.username, game.totalMoney, game.floorsCompleted, true);
       await db.saveGameHistory(game.userId, interaction.guildId, game.username, game.totalMoney, game.floorsCompleted, 'completed');
-      
+
       // Show completion message
       const endEmbed = GameUI.createGameEndEmbed(game, 'completed', game.totalMoney);
       await interaction.update({ embeds: [endEmbed], components: [] });
-      
+
       // End the game
       gameManager.endGame(interaction.channelId);
       return;
@@ -706,7 +1071,7 @@ async function handleClearCommand(interaction) {
 
   try {
     const amount = interaction.options.getInteger('amount') || 100;
-    
+
     // Fetch and delete messages
     const fetched = await interaction.channel.messages.fetch({ limit: amount });
     const deleted = await interaction.channel.bulkDelete(fetched, true);
@@ -773,7 +1138,7 @@ async function handleArchiveCommand(interaction) {
 
     // Find or create the toc-archive channel
     let archiveChannel = interaction.guild.channels.cache.find(ch => ch.name === 'toc-archive');
-    
+
     if (!archiveChannel) {
       // Try to create the channel
       try {
@@ -790,16 +1155,16 @@ async function handleArchiveCommand(interaction) {
     }
 
     // Create archive embed
-    const timestamp = new Date().toLocaleString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    const timestamp = new Date().toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
 
     let description = `**Archived on:** ${timestamp}\n\n`;
-    
+
     archivedData.forEach((player, index) => {
       const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
       description += `${medal} **${player.username}**\n`;
@@ -918,67 +1283,67 @@ async function handleListChannelsCommand(interaction) {
   }
 }
 
-  // Admin: Set per-guild day limit for plays
-  async function handleDayLimitCommand(interaction) {
+// Admin: Set per-guild day limit for plays
+async function handleDayLimitCommand(interaction) {
+  try {
+    await interaction.deferReply({ ephemeral: true });
+
+    const member = interaction.member;
+    if (!isAdmin(member)) {
+      return interaction.editReply({ content: '❌ You need the 💻 Owner role or Administrator permission to use this command.' });
+    }
+
+    const limit = interaction.options.getInteger('limit');
+    const guildId = interaction.guild.id;
+
+    // Persist to DB (0 means disabled/unlimited as per UI decision)
+    await db.setDayLimit(guildId, limit);
+
+    if (limit === 0) {
+      await interaction.editReply({ content: `✅ Daily play limit cleared for this server. Users can now play unlimited times (unless limited by bonus plays).` });
+    } else {
+      await interaction.editReply({ content: `✅ Daily play limit set to **${limit}** play${limit > 1 ? 's' : ''} per day for this server.` });
+    }
+  } catch (error) {
+    console.error('Error in day_limit command:', error);
     try {
-      await interaction.deferReply({ ephemeral: true });
-
-      const member = interaction.member;
-      if (!isAdmin(member)) {
-        return interaction.editReply({ content: '❌ You need the 💻 Owner role or Administrator permission to use this command.' });
-      }
-
-      const limit = interaction.options.getInteger('limit');
-      const guildId = interaction.guild.id;
-
-      // Persist to DB (0 means disabled/unlimited as per UI decision)
-      await db.setDayLimit(guildId, limit);
-
-      if (limit === 0) {
-        await interaction.editReply({ content: `✅ Daily play limit cleared for this server. Users can now play unlimited times (unless limited by bonus plays).` });
-      } else {
-        await interaction.editReply({ content: `✅ Daily play limit set to **${limit}** play${limit > 1 ? 's' : ''} per day for this server.` });
-      }
-    } catch (error) {
-      console.error('Error in day_limit command:', error);
-      try {
-        await interaction.editReply({ content: '❌ An error occurred while setting the day limit.' });
-      } catch (err) {
-        console.error('Error replying to day_limit command error:', err);
-      }
+      await interaction.editReply({ content: '❌ An error occurred while setting the day limit.' });
+    } catch (err) {
+      console.error('Error replying to day_limit command error:', err);
     }
   }
+}
 
-  // Admin: Enable or disable event mode for this guild
-  async function handleEventModeCommand(interaction) {
+// Admin: Enable or disable event mode for this guild
+async function handleEventModeCommand(interaction) {
+  try {
+    await interaction.deferReply({ ephemeral: true });
+
+    const member = interaction.member;
+    if (!isAdmin(member)) {
+      return interaction.editReply({ content: '❌ You need the 💻 Owner role or Administrator permission to use this command.' });
+    }
+
+    const action = interaction.options.getString('action');
+    const guildId = interaction.guild.id;
+
+    const enable = action === 'enable';
+    await db.setEventMode(guildId, enable);
+
+    if (enable) {
+      await interaction.editReply({ content: '🎉 Event mode enabled for this server. Future games will include special event tiles.' });
+    } else {
+      await interaction.editReply({ content: '🔕 Event mode disabled for this server. Games will run in normal mode.' });
+    }
+  } catch (error) {
+    console.error('Error in event-mode command:', error);
     try {
-      await interaction.deferReply({ ephemeral: true });
-
-      const member = interaction.member;
-      if (!isAdmin(member)) {
-        return interaction.editReply({ content: '❌ You need the 💻 Owner role or Administrator permission to use this command.' });
-      }
-
-      const action = interaction.options.getString('action');
-      const guildId = interaction.guild.id;
-
-      const enable = action === 'enable';
-      await db.setEventMode(guildId, enable);
-
-      if (enable) {
-        await interaction.editReply({ content: '🎉 Event mode enabled for this server. Future games will include special event tiles.' });
-      } else {
-        await interaction.editReply({ content: '🔕 Event mode disabled for this server. Games will run in normal mode.' });
-      }
-    } catch (error) {
-      console.error('Error in event-mode command:', error);
-      try {
-        await interaction.editReply({ content: '❌ An error occurred while toggling event mode.' });
-      } catch (err) {
-        console.error('Error replying to event-mode command error:', err);
-      }
+      await interaction.editReply({ content: '❌ An error occurred while toggling event mode.' });
+    } catch (err) {
+      console.error('Error replying to event-mode command error:', err);
     }
   }
+}
 
 async function handleVaultMinigame(interaction, game) {
   // Initialize vault state
@@ -1000,7 +1365,7 @@ async function handleVaultMinigame(interaction, game) {
 
   collector.on('collect', async (message) => {
     const guess = message.content.trim();
-    
+
     // Validate guess
     if (!/^\d{6}$/.test(guess)) {
       await message.reply({ content: '❌ Invalid guess! Please enter exactly 6 digits.', ephemeral: true });
@@ -1031,7 +1396,7 @@ async function handleVaultMinigame(interaction, game) {
     if (result.correctPosition === 6) {
       collector.stop('cracked');
       const rewardResult = calculateVaultReward(6, game);
-      
+
       if (rewardResult.type === 'money') {
         game.totalMoney += rewardResult.value;
       } else if (rewardResult.type === 'percentage') {
@@ -1053,18 +1418,18 @@ async function handleVaultMinigame(interaction, game) {
     // Check if out of attempts
     if (attemptsLeft <= 0) {
       collector.stop('failed');
-      
+
       // Find best attempt (most correct digits)
-      const bestAttempt = game.vaultState.attempts.reduce((best, current) => 
+      const bestAttempt = game.vaultState.attempts.reduce((best, current) =>
         current.correctPosition > best.correctPosition ? current : best
-      , { correctPosition: 0 });
-      
+        , { correctPosition: 0 });
+
       const rewardResult = calculateVaultReward(bestAttempt.correctPosition, game);
-      
+
       if (rewardResult.type === 'money' && rewardResult.value > 0) {
         game.totalMoney += rewardResult.value;
       }
-      
+
       const failedEmbed = GameUI.createVaultFailedEmbed(game, bestAttempt.correctPosition, rewardResult, secretCode);
       await interaction.channel.send({ embeds: [failedEmbed] });
 
@@ -1110,7 +1475,7 @@ function generateSecretCode() {
 function checkVaultGuess(secretCode, guess, guessedDigits) {
   const secretDigits = secretCode.split('');
   const guessDigits = guess.split('');
-  
+
   let correctPosition = 0;
   let correctWrongPosition = 0;
 
@@ -1139,7 +1504,7 @@ function calculateVaultReward(correctDigits, game) {
   if (correctDigits === 6) {
     // Special random rewards for cracking the code
     const rand = Math.random();
-    
+
     if (rand < 0.40) { // 40% chance
       return { type: 'money', value: 1000000, display: '$1,000,000' };
     } else if (rand < 0.70) { // 30% chance
@@ -1150,23 +1515,23 @@ function calculateVaultReward(correctDigits, game) {
       // Reveal a random game over floor
       const gameOverFloors = game.preGeneratedFloors
         .map((floor, index) => ({ floor, number: index + 1 }))
-        .filter(f => 
+        .filter(f =>
           f.floor.left.type === 'game_over' || f.floor.right.type === 'game_over'
         );
-      
+
       if (gameOverFloors.length > 0) {
         const randomFloor = gameOverFloors[Math.floor(Math.random() * gameOverFloors.length)];
-        return { 
-          type: 'reveal_floor', 
-          value: randomFloor.number, 
-          display: `Reveal Floor ${randomFloor.number} has Game Over` 
+        return {
+          type: 'reveal_floor',
+          value: randomFloor.number,
+          display: `Reveal Floor ${randomFloor.number} has Game Over`
         };
       }
       // Fallback if no game over floors
       return { type: 'money', value: 1000000, display: '$1,000,000' };
     }
   }
-  
+
   // Partial rewards based on correct digits
   const rewardMap = {
     5: 500000,
@@ -1176,7 +1541,7 @@ function calculateVaultReward(correctDigits, game) {
     1: 10000,
     0: 0
   };
-  
+
   return { type: 'money', value: rewardMap[correctDigits] || 0, display: `$${(rewardMap[correctDigits] || 0).toLocaleString()}` };
 }
 
@@ -1207,12 +1572,12 @@ async function handleOperatorAccept(interaction, game) {
   }
 
   const offerAmount = game.operatorOfferState.offerAmount;
-  
+
   // Accept offer - set money to offer amount and end game (counts as win)
   game.totalMoney = offerAmount;
-  
+
   await interaction.update({ components: [] });
-  
+
   // End game with lobby reason (counts as win)
   await endGame(interaction, game, 'lobby', offerAmount);
 }
@@ -1222,10 +1587,10 @@ async function handleOperatorDecline(interaction, game) {
     return interaction.reply({ content: '❌ No operator offer found!', ephemeral: true });
   }
 
-  await interaction.update({ 
-    content: '❌ **Offer Declined!** Continuing with your current amount...', 
-    embeds: [], 
-    components: [] 
+  await interaction.update({
+    content: '❌ **Offer Declined!** Continuing with your current amount...',
+    embeds: [],
+    components: []
   });
 
   // Clear operator offer state
@@ -1248,7 +1613,7 @@ async function continueAfterEvent(interaction, game) {
     .setColor('#4169E1')
     .setTitle('🎮 Continue Game')
     .setDescription(`**Current Money:** $${GameUI.formatMoney(game.totalMoney)}\n\nPress continue to move to the next floor!`);
-  
+
   await interaction.channel.send({ embeds: [continueEmbed], components: continueButtons });
 }
 
@@ -1268,12 +1633,12 @@ async function handleRevealFloorCommand(interaction) {
 
     // First check for game in the channel
     let game = gameManager.getGame(interaction.channelId);
-    
+
     // If no game in channel, check if admin has their own game
     if (!game) {
       game = gameManager.getGame(interaction.user.id);
     }
-    
+
     if (!game) {
       return interaction.editReply({ content: '❌ No active game in this channel or for your user!' });
     }
@@ -1294,24 +1659,25 @@ async function handleRevealFloorCommand(interaction) {
 
 async function handleCurrentModeCommand(interaction) {
   try {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply();
 
-    const guildId = interaction.guild.id;
-    const eventMode = await db.getEventMode(guildId);
-    const dayLimit = await db.getDayLimit(guildId);
+    const eventMode = await db.getEventMode(interaction.guildId);
 
-    const mode = eventMode ? '🎉 **Event Mode**' : '🎮 **Normal Mode**';
-    const limitText = dayLimit !== null ? `${dayLimit} play${dayLimit !== 1 ? 's' : ''} per day` : `${config.maxPlaysPerDay} plays per day (default)`;
+    const embed = new (require('discord.js').EmbedBuilder)()
+      .setColor(eventMode ? '#FF1493' : '#FFD700')
+      .setTitle(eventMode ? '🌟 Season 1 Mode Active 🌟' : '🏢 Normal Mode Active')
+      .setDescription(
+        (eventMode ?
+          '**Season 1 Mode is currently ENABLED for this server!**\n\n' +
+          '✨ **Season 1 Features Active:**\n• 28 Floors across 7 rounds\n• Mega Grid & The ∞% minigames\n• Boost Multiplier & Random 5\n• The Vault, Operator Offer & Hideout Breakthrough\n' :
+          '**Normal Mode is currently active for this server.**\n\n' +
+          '📊 **Current Features:**\n• 21 Floors across 6 rounds\n• Classic gameplay\n'
+        ) +
+        '\n*Admins can toggle modes with `/event-mode`*'
+      )
+      .setTimestamp();
 
-    await interaction.editReply({
-      content: 
-        '📊 **Current Server Settings**\n\n' +
-        `**Game Mode:** ${mode}\n` +
-        `**Daily Limit:** ${limitText}\n\n` +
-        (eventMode ? '✨ Event tiles (The Vault, Operator Offer) are active!\n' : '') +
-        `**Remaining Plays Today:** ${await db.getRemainingPlays(interaction.user.id, guildId)}`
-    });
-
+    await interaction.editReply({ embeds: [embed] });
   } catch (error) {
     console.error('Error in current-mode command:', error);
     try {
@@ -1329,40 +1695,40 @@ async function handleCheckDailyCommand(interaction) {
     const userId = interaction.user.id;
     const guildId = interaction.guild.id;
     const member = interaction.member;
-    
+
     // Check if user is admin
     const hasAdminRole = isAdmin(member);
-    
+
     if (hasAdminRole) {
       return interaction.editReply({
         content: '👑 **Admin Privilege**\n\nAs an admin, you have **unlimited plays**. No daily limit applies to you!'
       });
     }
-    
+
     // Get remaining plays
     const remainingPlays = await db.getRemainingPlays(userId, guildId);
-    
+
     // Calculate time until next day (midnight UTC)
     const now = new Date();
     const tomorrow = new Date(now);
     tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
     tomorrow.setUTCHours(0, 0, 0, 0);
-    
+
     const timeLeft = tomorrow - now;
     const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
     const minutesLeft = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
     const secondsLeft = Math.floor((timeLeft % (1000 * 60)) / 1000);
-    
+
     let message = '📊 **Daily Play Status**\n\n';
     message += `🎮 **Remaining Plays:** ${remainingPlays}/2\n`;
     message += `⏰ **Time Until Reset:** ${hoursLeft}h ${minutesLeft}m ${secondsLeft}s\n\n`;
-    
+
     if (remainingPlays > 0) {
       message += '✅ You can play right now!';
     } else {
       message += '❌ No plays remaining. Come back after the reset!';
     }
-    
+
     await interaction.editReply({
       content: message
     });
@@ -1377,58 +1743,631 @@ async function handleCheckDailyCommand(interaction) {
 
 async function handleGoToLobby(interaction, game) {
   const finalScore = game.totalMoney;
-  
+
   // Save to database with actual money as score - going to lobby counts as a win
   await db.updatePlayerStats(game.userId, interaction.guildId, game.username, finalScore, game.floorsCompleted, true);
   await db.saveGameHistory(game.userId, interaction.guildId, game.username, finalScore, game.floorsCompleted, 'lobby');
-  
+
   // Show game end
   const endEmbed = GameUI.createGameEndEmbed(game, 'lobby', finalScore);
   await interaction.update({ embeds: [endEmbed], components: [] });
-  
-  // If game ended early (before completing all 21 floors), show what was behind unplayed floors
-  if (game.floorsCompleted < 21) {
+
+  // If game ended early (before completing all 28 floors), show what was behind unplayed floors
+  if (game.floorsCompleted < 28) {
     const unplayedFloors = game.getUnplayedFloors();
     const unplayedEmbed = GameUI.createUnplayedFloorsEmbed(unplayedFloors);
-    
+
     if (unplayedEmbed) {
       await interaction.followUp({ embeds: [unplayedEmbed], components: [] });
     }
   }
-  
+
   // Clean up - end the game to prevent multiple saves
   gameManager.endGame(interaction.channelId);
 }
 
 async function endGame(interaction, game, reason, finalScore) {
   const isWin = reason === 'completed';
-  
+
   // Save to database
   await db.updatePlayerStats(game.userId, interaction.guildId, game.username, finalScore, game.floorsCompleted, isWin);
   await db.saveGameHistory(game.userId, interaction.guildId, game.username, finalScore, game.floorsCompleted, reason);
 
   // Create end game embed
   const endEmbed = GameUI.createGameEndEmbed(game, reason, finalScore);
-  
+
   // Send end message - check if interaction has been replied to already
   if (interaction.replied || interaction.deferred) {
     await interaction.followUp({ embeds: [endEmbed], components: [] });
   } else {
     await interaction.update({ embeds: [endEmbed], components: [] });
   }
-  
-  // If game ended early (not completed all 21 floors), show what was behind unplayed floors
-  if (reason !== 'completed' && game.floorsCompleted < 21) {
+
+  // If game ended early (not completed all 28 floors), show what was behind unplayed floors
+  if (reason !== 'completed' && game.floorsCompleted < 28) {
     const unplayedFloors = game.getUnplayedFloors();
     const unplayedEmbed = GameUI.createUnplayedFloorsEmbed(unplayedFloors);
-    
+
     if (unplayedEmbed) {
       await interaction.followUp({ embeds: [unplayedEmbed], components: [] });
     }
   }
-  
+
   // End the game
   gameManager.endGame(interaction.channelId);
+}
+
+// --- MEGA GRID HANDLERS ---
+
+async function handleMegaGridMinigame(interaction, game) {
+  // Initialize minigame
+  game.startMegaGrid();
+
+  const embed = GameUI.createMegaGridIntroEmbed(game);
+  const buttons = GameUI.createMegaGridButtons(game, true); // Show start button
+
+  await interaction.followUp({ embeds: [embed], components: buttons });
+}
+
+async function handleMegaGridStart(interaction, game) {
+  const embed = GameUI.createMegaGridRoundEmbed(game);
+  const buttons = GameUI.createMegaGridButtons(game);
+
+  await interaction.update({ embeds: [embed], components: buttons });
+}
+
+async function handleMegaGridPick(interaction, game) {
+  const choiceIndex = parseInt(interaction.customId.split('_')[3]);
+
+  // Show suspense message
+  await interaction.update({
+    content: '🎲 Revealing tile...',
+    embeds: [],
+    components: []
+  });
+
+  // Wait for suspense (1.5 seconds)
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
+  const result = game.playMegaGridRound(choiceIndex);
+
+  if (!result) return; // Should not happen
+
+  const resultEmbed = GameUI.createMegaGridResultEmbed(game, result);
+
+  if (result.gameOver || !game.megaGridState.isActive) {
+    // Game Over or Jackpot
+    await interaction.editReply({ content: '', embeds: [resultEmbed], components: [] });
+
+    // Show what was behind unpicked tiles
+    const unpickedEmbed = GameUI.createMegaGridUnpickedEmbed(game);
+    await interaction.followUp({ embeds: [unpickedEmbed] });
+
+    // Continue game
+    const continueButtons = GameUI.createContinueButton();
+    await interaction.followUp({ content: '➡️ **Moving to next floor...**', components: continueButtons });
+  } else {
+    // Round cleared, show result then next round
+    await interaction.editReply({ content: '', embeds: [resultEmbed], components: [] });
+
+    // Wait a bit
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Show next round
+    const nextEmbed = GameUI.createMegaGridRoundEmbed(game);
+    const nextButtons = GameUI.createMegaGridButtons(game);
+    await interaction.followUp({ embeds: [nextEmbed], components: nextButtons });
+  }
+}
+
+async function handleMegaGridCashout(interaction, game) {
+  // End minigame and take money
+  game.megaGridState.isActive = false;
+  game.totalMoney += game.megaGridState.accumulatedReward;
+
+  const resultEmbed = GameUI.createMegaGridResultEmbed(game, 'cashout');
+  await interaction.update({ embeds: [resultEmbed], components: [] });
+
+  // Show full grid reveal
+  const unpickedEmbed = GameUI.createMegaGridUnpickedEmbed(game);
+  await interaction.followUp({ embeds: [unpickedEmbed] });
+
+  // Continue game
+  const continueButtons = GameUI.createContinueButton();
+  await interaction.followUp({ content: '➡️ **Moving to next floor...**', components: continueButtons });
+}
+
+// === BOILING POINT HANDLERS ===
+
+async function handleBoilingPointStart(interaction, game) {
+  game.startBoilingPoint();
+
+  const embed = GameUI.createBoilingPointRoundEmbed(game);
+  const buttons = GameUI.createBoilingPointButtons(game);
+
+  await interaction.update({ embeds: [embed], components: buttons });
+}
+
+async function handleBoilingPointAction(interaction, game, action) {
+  // Handle Hotter/Colder
+  const result = game.playBoilingPoint(action);
+
+  if (!result) return;
+
+  if (result.gameOver) {
+    const resultEmbed = GameUI.createBoilingPointResultEmbed(game, result);
+    await interaction.update({ embeds: [resultEmbed], components: [] });
+
+    // Continue game
+    const continueButtons = GameUI.createContinueButton();
+    await interaction.followUp({ content: '➡️ **Moving to next floor...**', components: continueButtons });
+  } else {
+    // Next step
+    const embed = GameUI.createBoilingPointRoundEmbed(game);
+    const buttons = GameUI.createBoilingPointButtons(game);
+    await interaction.update({ embeds: [embed], components: buttons });
+  }
+}
+
+async function handleBoilingPointChange(interaction, game) {
+  // Show change options
+  const embed = GameUI.createBoilingPointRoundEmbed(game);
+  const buttons = GameUI.createBoilingPointChangeButtons(game);
+
+  await interaction.update({ embeds: [embed], components: buttons });
+}
+
+async function handleBoilingPointChangeAction(interaction, game, action) {
+  // Handle Change & Hotter/Colder
+  const result = game.playBoilingPoint(action, true); // true = isChange
+
+  if (!result) return;
+
+  if (result.gameOver) {
+    const resultEmbed = GameUI.createBoilingPointResultEmbed(game, result);
+    await interaction.update({ embeds: [resultEmbed], components: [] });
+
+    // Continue game
+    const continueButtons = GameUI.createContinueButton();
+    await interaction.followUp({ content: '➡️ **Moving to next floor...**', components: continueButtons });
+  } else {
+    // Next step
+    const embed = GameUI.createBoilingPointRoundEmbed(game);
+    const buttons = GameUI.createBoilingPointButtons(game);
+    await interaction.update({ embeds: [embed], components: buttons });
+  }
+}
+
+async function handleBoilingPointCancelChange(interaction, game) {
+  // Return to normal buttons
+  const embed = GameUI.createBoilingPointRoundEmbed(game);
+  const buttons = GameUI.createBoilingPointButtons(game);
+
+  await interaction.update({ embeds: [embed], components: buttons });
+}
+
+// --- THE ∞% HANDLERS ---
+
+async function handleInfinityPercentMinigame(interaction, game) {
+  game.startInfinityPercent();
+
+  const embed = GameUI.createInfinityPercentIntroEmbed(game);
+  const buttons = GameUI.createInfinityPercentButtons(game, true);
+
+  await interaction.followUp({ embeds: [embed], components: buttons });
+}
+
+async function handleInfinityStart(interaction, game) {
+  const embed = GameUI.createInfinityPercentRoundEmbed(game);
+  const buttons = GameUI.createInfinityPercentButtons(game);
+
+  await interaction.update({ embeds: [embed], components: buttons });
+}
+
+async function handleInfinityPick(interaction, game, choice) {
+  const result = game.playInfinityPercentRound(choice);
+
+  if (!result) return;
+
+  const resultEmbed = GameUI.createInfinityPercentResultEmbed(game, result);
+
+  if (result.gameOver) {
+    // Game Over (3 strikes)
+    await interaction.update({ embeds: [resultEmbed], components: [] });
+
+    // Continue game
+    const continueButtons = GameUI.createContinueButton();
+    await interaction.followUp({ content: '➡️ **Moving to next floor...**', components: continueButtons });
+  } else {
+    // Round result
+    await interaction.update({ embeds: [resultEmbed], components: [] });
+
+    // Wait a bit
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Show next round
+    const nextEmbed = GameUI.createInfinityPercentRoundEmbed(game);
+    const nextButtons = GameUI.createInfinityPercentButtons(game);
+    await interaction.followUp({ embeds: [nextEmbed], components: nextButtons });
+  }
+}
+
+async function handleInfinityStop(interaction, game) {
+  const result = game.cashoutInfinityPercent();
+
+  const resultEmbed = GameUI.createInfinityPercentResultEmbed(game, 'cashout');
+  await interaction.update({ embeds: [resultEmbed], components: [] });
+
+  // Continue game
+  const continueButtons = GameUI.createContinueButton();
+  await interaction.followUp({ content: '➡️ **Moving to next floor...**', components: continueButtons });
+}
+
+// --- HIDEOUT BREAKTHROUGH HANDLERS ---
+
+async function handleHideoutBreakthroughMinigame(interaction, game) {
+  // Initialize minigame
+  game.startHideoutBreakthrough();
+
+  const embed = GameUI.createHideoutBreakthroughIntroEmbed(game);
+  const buttons = GameUI.createHideoutBreakthroughButtons(game, true); // Show start button
+
+  await interaction.followUp({ embeds: [embed], components: buttons });
+}
+
+async function handleHideoutBreakthroughStart(interaction, game) {
+  const embed = GameUI.createHideoutBreakthroughRoundEmbed(game);
+  const buttons = GameUI.createHideoutBreakthroughButtons(game);
+
+  await interaction.update({ embeds: [embed], components: buttons });
+}
+
+async function handleHideoutBreakthroughPick(interaction, game) {
+  const buttonIndex = parseInt(interaction.customId.split('_')[2]);
+
+  // Show suspense message
+  await interaction.update({
+    content: '🎲 Revealing number...',
+    embeds: [],
+    components: []
+  });
+
+  // Wait for suspense (1.5 seconds)
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
+  // Process the pick
+  const result = game.playHideoutBreakthroughRound(buttonIndex);
+
+  if (!result) return; // Should not happen
+
+  const resultEmbed = GameUI.createHideoutBreakthroughResultEmbed(game, result);
+
+  if (result.gameOver) {
+    // Game Over (win or fail)
+    await interaction.editReply({ content: '', embeds: [resultEmbed], components: [] });
+
+    // Show what was behind unpicked buttons
+    const unpickedEmbed = GameUI.createHideoutBreakthroughUnpickedEmbed(game);
+    await interaction.followUp({ embeds: [unpickedEmbed] });
+
+    // Continue game
+    const continueButtons = GameUI.createContinueButton();
+    await interaction.followUp({ content: '➡️ **Moving to next floor...**', components: continueButtons });
+  } else {
+    // Round cleared, show result then next round
+    await interaction.editReply({ content: '', embeds: [resultEmbed], components: [] });
+
+    // Wait a bit
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Show next round
+    const nextEmbed = GameUI.createHideoutBreakthroughRoundEmbed(game);
+    const nextButtons = GameUI.createHideoutBreakthroughButtons(game);
+    await interaction.followUp({ embeds: [nextEmbed], components: nextButtons });
+  }
+}
+
+// --- BABUSHKA HANDLERS ---
+
+async function handleBabushkaMinigame(interaction, game) {
+  // Initialize minigame
+  game.startBabushka();
+
+  const embed = GameUI.createBabushkaIntroEmbed(game);
+  const buttons = GameUI.createBabushkaButtons(game, true); // Show start button
+
+  await interaction.followUp({ embeds: [embed], components: buttons });
+}
+
+async function handleBabushkaStart(interaction, game) {
+  const embed = GameUI.createBabushkaSelectionEmbed(game);
+  const buttons = GameUI.createBabushkaButtons(game);
+
+  await interaction.update({ embeds: [embed], components: buttons });
+}
+
+async function handleBabushkaSelect(interaction, game) {
+  const dollIndex = parseInt(interaction.customId.split('_')[2]);
+
+  // Select the doll
+  const result = game.selectBabushkaDoll(dollIndex);
+
+  if (!result) return;
+
+  // Show selected doll with reveal button
+  const embed = new EmbedBuilder()
+    .setColor('#FF6B9D')
+    .setTitle('🪆 BABUSHKA - Doll Selected')
+    .setDescription(
+      `You selected doll #${dollIndex + 1}!\n\n` +
+      'Click Reveal to open the doll and see what\'s inside...'
+    );
+
+  const buttons = GameUI.createBabushkaButtons(game);
+
+  await interaction.update({ embeds: [embed], components: buttons });
+}
+
+async function handleBabushkaReveal(interaction, game) {
+  // Show suspense message
+  await interaction.update({
+    content: '🎁 Opening the doll...',
+    embeds: [],
+    components: []
+  });
+
+  // Wait for suspense (1.5 seconds)
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
+  // Reveal the layer
+  const result = game.revealBabushkaLayer();
+
+  if (!result) return;
+
+  const resultEmbed = GameUI.createBabushkaLayerEmbed(game, result);
+
+  if (result.gameOver) {
+    // Game Over - 3 strikes
+    await interaction.editReply({ content: '', embeds: [resultEmbed], components: [] });
+
+    // Show all dolls revealed
+    const unpickedEmbed = GameUI.createBabushkaUnpickedEmbed(game, game.babushkaState.dolls);
+    await interaction.followUp({ embeds: [unpickedEmbed] });
+
+    // Continue game
+    const continueButtons = GameUI.createContinueButton();
+    await interaction.followUp({ content: '➡️ **Moving to next floor...**', components: continueButtons });
+  } else if (result.isEmpty) {
+    // Strike - show result then return to selection
+    await interaction.editReply({ content: '', embeds: [resultEmbed], components: [] });
+
+    // Wait a bit
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // If not game over, show selection again
+    if (game.babushkaState.isActive) {
+      const nextEmbed = GameUI.createBabushkaSelectionEmbed(game);
+      const nextButtons = GameUI.createBabushkaButtons(game);
+      await interaction.followUp({ embeds: [nextEmbed], components: nextButtons });
+    }
+  } else if (result.isAutoBank) {
+    // 10M Auto-banked - show result then return to selection
+    await interaction.editReply({ content: '', embeds: [resultEmbed], components: [] });
+
+    // Wait a bit
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Show selection again
+    if (game.babushkaState.isActive) {
+      const nextEmbed = GameUI.createBabushkaSelectionEmbed(game);
+      const nextButtons = GameUI.createBabushkaButtons(game);
+      await interaction.followUp({ embeds: [nextEmbed], components: nextButtons });
+    }
+  } else {
+    // Layer found - show continue/bank buttons
+    await interaction.editReply({ content: '', embeds: [resultEmbed], components: [] });
+
+    // Wait a bit
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Show continue/bank buttons
+    const buttons = GameUI.createBabushkaButtons(game);
+    await interaction.followUp({ embeds: [resultEmbed], components: buttons });
+  }
+}
+
+async function handleBabushkaContinue(interaction, game) {
+  // Player chose to continue to next layer
+  game.continueBabushka();
+
+  // Show reveal button again
+  const embed = new EmbedBuilder()
+    .setColor('#FF6B9D')
+    .setTitle('🪆 BABUSHKA - Going Deeper')
+    .setDescription(
+      `You chose to continue!\n\n` +
+      `**Current Layer:** ${game.babushkaState.currentLayer}\n` +
+      `**Current Doll Value:** $${GameUI.formatMoney(game.babushkaState.currentDollValue)}\n` +
+      `**Stashed Money:** $${GameUI.formatMoney(game.babushkaState.accumulatedMoney)}\n\n` +
+      'Click Reveal to see the next layer...'
+    );
+
+  const buttons = GameUI.createBabushkaButtons(game);
+
+  await interaction.update({ embeds: [embed], components: buttons });
+}
+
+async function handleBabushkaBank(interaction, game) {
+  // Bank current doll to stash
+  const result = game.bankBabushka();
+
+  const resultEmbed = GameUI.createBabushkaBankEmbed(game, result);
+  await interaction.update({ embeds: [resultEmbed], components: [] });
+
+  // Wait a bit (longer to read the "what if" reveal)
+  await new Promise(resolve => setTimeout(resolve, 4000));
+
+  // Show selection again
+  if (game.babushkaState.isActive) {
+    const nextEmbed = GameUI.createBabushkaSelectionEmbed(game);
+    const nextButtons = GameUI.createBabushkaButtons(game);
+    await interaction.followUp({ embeds: [nextEmbed], components: nextButtons });
+  }
+}
+
+async function handleBabushkaCashout(interaction, game) {
+  // "Walk Away" - End minigame
+  const result = game.cashoutBabushka();
+
+  if (!result) {
+    return interaction.reply({ content: '❌ Game already ended!', ephemeral: true });
+  }
+
+  const cashoutEmbed = new EmbedBuilder()
+    .setColor('#00FF00')
+    .setTitle('🏃 BABUSHKA - WALKED AWAY')
+    .setDescription(
+      `You decided to walk away with your Stash!\n\n` +
+      `**Total Won:** $${GameUI.formatMoney(result.finalAmount)}\n` +
+      `**Total Money:** $${GameUI.formatMoney(result.totalMoney)}`
+    );
+
+  await interaction.update({ embeds: [cashoutEmbed], components: [] });
+
+  // Show what was in all dolls
+  const unpickedEmbed = GameUI.createBabushkaUnpickedEmbed(game, result.allDolls);
+  await interaction.followUp({ embeds: [unpickedEmbed] });
+
+  // Continue game
+  const continueButtons = GameUI.createContinueButton();
+  await interaction.followUp({ content: '➡️ **Moving to next floor...**', components: continueButtons });
+}
+
+// --- TEST COMMAND HANDLERS ---
+
+async function handleTestBoostCommand(interaction) {
+  await interaction.deferReply();
+
+  const game = gameManager.getGame(interaction.channelId);
+  if (!game) {
+    const testGame = await gameManager.createGame(interaction.user.id, interaction.user.username, interaction.channelId, interaction.guildId, db);
+    testGame.totalMoney = 100000; // Start with $100,000 for testing
+
+    const multiplier = (Math.random() * 3).toFixed(2);
+    const moneyBefore = testGame.totalMoney;
+    testGame.totalMoney = Math.floor(testGame.totalMoney * multiplier);
+
+    const embed = new EmbedBuilder()
+      .setColor('#00FF00')
+      .setTitle('🧪 Testing Boost Multiplier')
+      .setDescription(
+        `**Multiplier:** ${multiplier}x\n` +
+        `**Money Before:** $${GameUI.formatMoney(moneyBefore)}\n` +
+        `**Money After:** $${GameUI.formatMoney(testGame.totalMoney)}\n\n` +
+        `**Change:** +$${GameUI.formatMoney(testGame.totalMoney - moneyBefore)}`
+      );
+
+    await interaction.editReply({ embeds: [embed] });
+    gameManager.endGame(interaction.channelId);
+  } else {
+    await interaction.editReply({ content: '❌ A game is already active. Use `/stopgame` first.' });
+  }
+}
+
+
+
+async function handleTestVaultCommand(interaction) {
+  await interaction.deferReply();
+
+  const game = gameManager.getGame(interaction.channelId);
+  if (!game) {
+    const testGame = await gameManager.createGame(interaction.user.id, interaction.user.username, interaction.channelId, interaction.guildId, db);
+    testGame.totalMoney = 50000;
+
+    // Start The Vault
+    testGame.startVault();
+
+    const embed = GameUI.createVaultIntroEmbed(testGame);
+    const buttons = GameUI.createVaultButtons(testGame);
+
+    await interaction.editReply({ embeds: [embed], components: buttons });
+  } else {
+    await interaction.editReply({ content: '❌ A game is already active. Use `/stopgame` first.' });
+  }
+}
+
+async function handleTestInfinityCommand(interaction) {
+  await interaction.deferReply();
+
+  const game = gameManager.getGame(interaction.channelId);
+  if (!game) {
+    const testGame = await gameManager.createGame(interaction.user.id, interaction.user.username, interaction.channelId, interaction.guildId, db);
+    testGame.totalMoney = 100000;
+
+    // Start The ∞%
+    testGame.startInfinityPercent();
+
+    const embed = GameUI.createInfinityPercentIntroEmbed(testGame);
+    const buttons = GameUI.createInfinityPercentButtons(testGame, true);
+
+    await interaction.editReply({ embeds: [embed], components: buttons });
+  } else {
+    await interaction.editReply({ content: '❌ A game is already active. Use `/stopgame` first.' });
+  }
+}
+
+async function handleTestMegaGridCommand(interaction) {
+  await interaction.deferReply();
+
+  const game = gameManager.getGame(interaction.channelId);
+  if (!game) {
+    const testGame = await gameManager.createGame(interaction.user.id, interaction.user.username, interaction.channelId, interaction.guildId, db);
+    testGame.totalMoney = 100000; // Start with $100,000 for testing
+    testGame.eventMode = true; // Enable event mode
+
+    await interaction.editReply({ content: '🧪 **Test game created!** Starting Mega Grid minigame...' });
+
+    // Trigger Mega Grid minigame
+    await handleMegaGridMinigame(interaction, testGame);
+  } else {
+    await interaction.editReply({ content: '❌ A game is already active in this channel. Stop it first with `/stopgame`.' });
+  }
+}
+
+async function handleTestHideoutCommand(interaction) {
+  await interaction.deferReply();
+
+  const game = gameManager.getGame(interaction.channelId);
+  if (!game) {
+    const testGame = await gameManager.createGame(interaction.user.id, interaction.user.username, interaction.channelId, interaction.guildId, db);
+    testGame.totalMoney = 100000; // Start with $100,000 for testing
+    testGame.eventMode = true; // Enable event mode
+
+    await interaction.editReply({ content: '🧪 **Test game created!** Starting Hideout Breakthrough minigame...' });
+
+    // Trigger Hideout Breakthrough minigame
+    await handleHideoutBreakthroughMinigame(interaction, testGame);
+  } else {
+    await interaction.editReply({ content: '❌ A game is already active in this channel. Stop it first with `/stopgame`.' });
+  }
+}
+
+async function handleTestBabushka(interaction) {
+  await interaction.deferReply();
+
+  const game = gameManager.getGame(interaction.channelId);
+  if (!game) {
+    const testGame = await gameManager.createGame(interaction.user.id, interaction.user.username, interaction.channelId, interaction.guildId, db);
+    testGame.totalMoney = 100000; // Start with $100,000 for testing
+    testGame.eventMode = true; // Enable event mode
+
+    await interaction.editReply({ content: '🧪 **Test game created!** Starting Babushka minigame...' });
+
+    // Trigger Babushka minigame
+    await handleBabushkaMinigame(interaction, testGame);
+  } else {
+    await interaction.editReply({ content: '❌ A game is already active in this channel. Stop it first with `/stopgame`.' });
+  }
 }
 
 // Login with error handling

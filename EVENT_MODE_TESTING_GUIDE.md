@@ -28,9 +28,9 @@ All requested features have been implemented and syntax-validated. Here's what's
   - `/event-mode enable` - Enables event mode
   - `/event-mode disable` - Disables event mode
 - **Test Cases**:
-  - ✓ Enable event mode, start game, verify "The Vault" and "Operator Offer" appear
+  - ✓ Enable event mode, start game, verify event tiles appear (The Vault, Operator Offer, Hideout Breakthrough)
   - ✓ Disable event mode, verify only normal tiles appear
-  - ✓ Verify 2 "Nothing" tiles are replaced with event tiles
+  - ✓ Verify 3 "Nothing" tiles are replaced with 3 event tiles (plus 2 built-in event tiles in config)
 
 ---
 
@@ -77,6 +77,33 @@ All requested features have been implemented and syntax-validated. Here's what's
 - ✓ Get offer with $0 balance, verify offer is $100k-$5M
 - ✓ Accept offer, verify final score = offer amount and counts as win
 - ✓ Decline offer, verify game continues with original money
+
+#### 🏚️ Hideout Breakthrough
+**Trigger**: Player selects "Hideout Breakthrough" tile during event mode
+
+**Mechanics**:
+- 12 buttons hiding numbers 1-12 (3 rows × 4 buttons)
+- Player picks buttons to reveal numbers
+- Must pick numbers in **ascending order**
+- Each successful pick earns **$20,000**
+- Picking **12** (highest number) = forced stop, keep accumulated rewards
+- 6 successful ascending picks = **$1,000,000 JACKPOT**
+- Pick a lower/equal number = Game Over (keep accumulated rewards)
+- 1.5-second suspense delay before each reveal
+
+**Rewards**:
+- $20,000 per successful pick
+- $1,000,000 for completing 6 ascending picks
+- Keep all accumulated money when game stops
+
+**Test Cases**:
+- ✓ Pick number 12 on first pick, verify $20k earned and game stops
+- ✓ Pick number 12 on 3rd pick, verify accumulated rewards (e.g., $60k)
+- ✓ Pick ascending sequence (e.g., 3→5→7→9→11), verify rewards accumulate
+- ✓ Pick 6 ascending numbers, verify $1M jackpot
+- ✓ Pick lower number, verify game ends but keeps accumulated rewards
+- ✓ Verify suspense delay works before reveal
+- ✓ Verify unpicked numbers are revealed after game ends
 
 ---
 
@@ -137,6 +164,11 @@ When `/play` is used, displays:
    - Test accepting offer
    - Test declining offer
    - Verify win is recorded when accepted
+5. When you hit "Hideout Breakthrough":
+   - Try picking number 12 for instant win
+   - Try picking ascending sequence
+   - Try picking lower number to test failure
+   - Verify rewards accumulate correctly
 ```
 
 ### Phase 3: Stats & Profile Testing

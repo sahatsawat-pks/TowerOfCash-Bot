@@ -1,48 +1,282 @@
 {
   "gameAmounts": [
-    { "type": "cash", "value": 1 },
-    { "type": "cash", "value": 2 },
-    { "type": "cash", "value": 4 },
-    { "type": "cash", "value": 8 },
-    { "type": "cash", "value": 16 },
-    { "type": "cash", "value": 32 },
-    { "type": "cash", "value": 64 },
-    { "type": "cash", "value": 125 },
-    { "type": "cash", "value": 250 },
-    { "type": "cash", "value": 500 },
-    { "type": "cash", "value": 1000 },
-    { "type": "cash", "value": 2000 },
-    { "type": "cash", "value": 4000 },
-    { "type": "cash", "value": 8000 },
-    { "type": "cash", "value": 16000 },
-    { "type": "cash", "value": 32000 },
-    { "type": "cash", "value": 64000 },
-    { "type": "cash", "value": 125000 },
-    { "type": "cash", "value": 250000 },
-    { "type": "cash", "value": 500000 },
-    { "type": "cash", "value": 1000000 },
-    { "type": "percentage", "value": -25 },
-    { "type": "percentage", "value": -50 },
-    { "type": "percentage", "value": -75 },
-    { "type": "percentage", "value": -100 },
-    { "type": "percentage", "value": 25 },
-    { "type": "percentage", "value": 50 },
-    { "type": "percentage", "value": 75 },
-    { "type": "percentage", "value": 100 },
-    { "type": "random", "min": 0, "max": 9999, "label": "Random 1" },
-    { "type": "random", "min": 0, "max": 99999, "label": "Random 2" },
-    { "type": "random", "min": 0, "max": 999999, "label": "Random 3" },
-    { "type": "random", "min": 0, "max": 9999999, "label": "Random 4" },
-    { "type": "special", "action": "add_zero", "label": "Add a 0" },
-    { "type": "special", "action": "add_one", "label": "Add a 1" },
-    { "type": "special", "action": "x_level", "label": "X Level" },
-    { "type": "nothing", "label": "Nothing" },
-    { "type": "nothing", "label": "Nothing" },
-    { "type": "nothing", "label": "Nothing" },
-    { "type": "nothing", "label": "Nothing" },
-    { "type": "nothing", "label": "Nothing" },
-    { "type": "game_over", "label": "Game Over" }
+    {
+      "type": "cash",
+      "value": 1
+    },
+    {
+      "type": "cash",
+      "value": 2
+    },
+    {
+      "type": "cash",
+      "value": 4
+    },
+    {
+      "type": "cash",
+      "value": 8
+    },
+    {
+      "type": "cash",
+      "value": 16
+    },
+    {
+      "type": "cash",
+      "value": 32
+    },
+    {
+      "type": "cash",
+      "value": 64
+    },
+    {
+      "type": "cash",
+      "value": 125
+    },
+    {
+      "type": "cash",
+      "value": 250
+    },
+    {
+      "type": "cash",
+      "value": 500
+    },
+    {
+      "type": "cash",
+      "value": 1000
+    },
+    {
+      "type": "cash",
+      "value": 2000
+    },
+    {
+      "type": "cash",
+      "value": 4000
+    },
+    {
+      "type": "cash",
+      "value": 8000
+    },
+    {
+      "type": "cash",
+      "value": 16000
+    },
+    {
+      "type": "cash",
+      "value": 32000
+    },
+    {
+      "type": "cash",
+      "value": 64000
+    },
+    {
+      "type": "cash",
+      "value": 125000
+    },
+    {
+      "type": "cash",
+      "value": 250000
+    },
+    {
+      "type": "cash",
+      "value": 500000
+    },
+    {
+      "type": "cash",
+      "value": 1000000
+    },
+    {
+      "type": "percentage",
+      "value": -25
+    },
+    {
+      "type": "percentage",
+      "value": -50
+    },
+    {
+      "type": "percentage",
+      "value": -75
+    },
+    {
+      "type": "percentage",
+      "value": -100
+    },
+    {
+      "type": "percentage",
+      "value": 25
+    },
+    {
+      "type": "percentage",
+      "value": 50
+    },
+    {
+      "type": "percentage",
+      "value": 75
+    },
+    {
+      "type": "percentage",
+      "value": 100
+    },
+    {
+      "type": "random",
+      "min": 0,
+      "max": 9999,
+      "label": "Random 1"
+    },
+    {
+      "type": "random",
+      "min": 0,
+      "max": 99999,
+      "label": "Random 2"
+    },
+    {
+      "type": "random",
+      "min": 0,
+      "max": 999999,
+      "label": "Random 3"
+    },
+    {
+      "type": "random",
+      "min": 0,
+      "max": 9999999,
+      "label": "Random 4"
+    },
+    {
+      "type": "special",
+      "action": "add_zero",
+      "label": "Add a 0"
+    },
+    {
+      "type": "special",
+      "action": "add_one",
+      "label": "Add a 1"
+    },
+    {
+      "type": "special",
+      "action": "x_level",
+      "label": "X Level"
+    },
+    {
+      "type": "nothing",
+      "label": "Nothing"
+    },
+    {
+      "type": "nothing",
+      "label": "Nothing"
+    },
+    {
+      "type": "nothing",
+      "label": "Nothing"
+    },
+    {
+      "type": "nothing",
+      "label": "Nothing"
+    },
+    {
+      "type": "nothing",
+      "label": "Nothing"
+    },
+    {
+      "type": "nothing",
+      "label": "Nothing"
+    },
+    {
+      "type": "nothing",
+      "label": "Nothing"
+    },
+    {
+      "type": "nothing",
+      "label": "Nothing"
+    },
+    {
+      "type": "nothing",
+      "label": "Nothing"
+    },
+    {
+      "type": "nothing",
+      "label": "Nothing"
+    },
+    {
+      "type": "nothing",
+      "label": "Nothing"
+    },
+    {
+      "type": "nothing",
+      "label": "Nothing"
+    },
+    {
+      "type": "nothing",
+      "label": "Nothing"
+    },
+    {
+      "type": "nothing",
+      "label": "Nothing"
+    },
+    {
+      "type": "game_over",
+      "label": "Game Over"
+    },
+    {
+      "type": "random",
+      "min": 0,
+      "max": 99999999,
+      "label": "Random 5"
+    },
+    {
+      "type": "special",
+      "action": "boost_multiplier",
+      "min": 0,
+      "max": 300,
+      "label": "Boost Multiplier"
+    },
+    {
+      "type": "event",
+      "action": "mega_grid",
+      "label": "Mega Grid"
+    },
+    {
+      "type": "event",
+      "action": "infinity_percent",
+      "label": "The ∞%"
+    },
+    {
+      "type": "event",
+      "action": "hideout_breakthrough",
+      "label": "Hideout Breakthrough"
+    },
+    {
+      "type": "event",
+      "action": "babushka",
+      "label": "Babushka"
+    },
+    {
+      "type": "event",
+      "action": "boiling_point",
+      "label": "Boiling Point"
+    },
+    {
+      "type": "event",
+      "action": "operator_roshambo",
+      "label": "Operator Roshambo"
+    },
+    {
+      "type": "event",
+      "action": "mystery_box",
+      "label": "Mystery Box"
+    },
+    {
+      "type": "special",
+      "action": "random_percentage",
+      "label": "Random ±%"
+    }
   ],
   "maxPlaysPerDay": 2,
-  "roundFloors": [6, 5, 4, 3, 2, 1]
+  "roundFloors": [
+    7,
+    6,
+    5,
+    4,
+    3,
+    2,
+    1
+  ]
 }
