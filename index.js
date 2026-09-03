@@ -775,17 +775,7 @@ async function handleBoilingPointAction(interaction, game, action) {
 const commands = [
   new SlashCommandBuilder()
     .setName('play')
-    .setDescription('Start a new Tower of Cash game')
-    .addStringOption(option =>
-      option.setName('mode')
-        .setDescription('Select game mode for this session (optional)')
-        .setRequired(false)
-        .addChoices(
-          { name: '🌟 Season 2 (The Apex Tower - Pacts, Bosses, Elite Minigames)', value: 'season2' },
-          { name: '✨ Season 1 (30 Floors, Minigames)', value: 'season1' },
-          { name: '🎮 Minigame Master (Tournament/Gauntlet)', value: 'minigame_master' },
-          { name: '🎯 Normal Mode (21 Floors)', value: 'normal' }
-        )),
+    .setDescription('Start a new Tower of Cash game'),
 
   new SlashCommandBuilder()
     .setName('leaderboard')
@@ -3454,7 +3444,13 @@ async function handlePlayCommand(interaction) {
     }
   }
 
-  const selectedMode = interaction.options.getString('mode');
+  const selectedMode = (interaction.options && interaction.options.getString) ? interaction.options.getString('mode') : null;
+  if (selectedMode && !hasAdminRole) {
+    return interaction.reply({
+      content: '❌ Only administrators can choose the game mode! Game mode is configured by admins with `/event-mode`.',
+      flags: 64
+    });
+  }
 
   if (selectedMode === 'minigame_master') {
     return handleMinigameMasterCommand(interaction);
@@ -7133,6 +7129,37 @@ async function handleContinue(interaction, game) {
 
 // Continue game after minigame completes
 async function continueGameAfterMinigame(interaction, game) {
+  // Check if this minigame was launched as part of Minigame Master
+  if (game.mgmSession) {
+    const session = game.mgmSession;
+    const startMoney = game.startMoney || 500000;
+    const earned = Math.max(0, game.totalMoney - startMoney);
+    const minigameType = game.mgmMinigameType || (session.roundMinigames && session.roundMinigames[session.currentMinigameIndex]) || 'minigame';
+
+    session.recordGameEarnings(game.userId, minigameType, earned);
+    session.currentMinigameIndex++;
+
+    // Clean up temporary game so channel is free
+    gameManager.endGame(game.channelId);
+
+    const roundMulti = session.round === 2 ? 2 : (session.round === 3 ? 3 : 1);
+    const totalEarnedWithMulti = earned * roundMulti;
+
+    const roundEmbed = session.createRoundEmbed();
+    const roundButtons = session.createRoundButtons();
+
+    const finishMsg = earned > 0
+      ? `🎉 **${game.username}** conquered **${minigameType.replace(/_/g, ' ').toUpperCase()}** and banked **$${totalEarnedWithMulti.toLocaleString()}** (Base: $${earned.toLocaleString()} x ${roundMulti})!`
+      : `💀 **${game.username}** ended **${minigameType.replace(/_/g, ' ').toUpperCase()}** with **$0**!`;
+
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp({ content: finishMsg, embeds: [roundEmbed], components: roundButtons });
+    } else {
+      await interaction.update({ content: finishMsg, embeds: [roundEmbed], components: roundButtons });
+    }
+    return;
+  }
+
   // Check if game is over (player has no money left on last floor after Round 1)
   const isLastFloorInRound = game.currentFloor >= game.selectedFloors.length - 1;
   if (game.totalMoney <= 0 && game.currentRound > 1 && isLastFloorInRound) {
@@ -7203,10 +7230,11 @@ async function handleContinueToNextRound(interaction, game) {
 
 async function startCurrentFloorOrBoss(interaction, game) {
   const floorNumber = game.getCurrentFloorNumber();
+  const climbFloor = game.floorsCompleted + 1; // Actual floor reached on the tower climb (1 to 30)
 
   // Check if Season 2 Guardian Boss Floor (10, 20, 30)
-  if (game.isSeason2 && [10, 20, 30].includes(floorNumber)) {
-    if (floorNumber === 10) {
+  if (game.isSeason2 && [10, 20, 30].includes(climbFloor)) {
+    if (climbFloor === 10) {
       game.bossFloorState = BossFloors.startArchitectBoss(game.userId, game.username, game.totalMoney);
       const embed = BossFloors.createArchitectEmbed(game.bossFloorState);
       const buttons = BossFloors.createArchitectButtons(game.bossFloorState);
@@ -7215,7 +7243,7 @@ async function startCurrentFloorOrBoss(interaction, game) {
       } else {
         return interaction.update({ embeds: [embed], components: buttons });
       }
-    } else if (floorNumber === 20) {
+    } else if (climbFloor === 20) {
       game.bossFloorState = BossFloors.startLoanSharkBoss(game.userId, game.username, game.totalMoney);
       const embed = BossFloors.createLoanSharkEmbed(game.bossFloorState);
       const buttons = BossFloors.createLoanSharkButtons(game.bossFloorState);
@@ -7224,7 +7252,7 @@ async function startCurrentFloorOrBoss(interaction, game) {
       } else {
         return interaction.update({ embeds: [embed], components: buttons });
       }
-    } else if (floorNumber === 30) {
+    } else if (climbFloor === 30) {
       game.bossFloorState = BossFloors.startGrandOperatorBoss(game.userId, game.username, game.totalMoney);
       const embed = BossFloors.createOperatorEmbed(game.bossFloorState);
       const buttons = BossFloors.createOperatorButtons(game.bossFloorState);
@@ -7266,7 +7294,6 @@ async function handleS2BossArchitectContinue(interaction, game) {
     game.activeEffects.push({ type: 'revealNext2', duration: 2, floorsRemaining: 2 });
   }
   game.bossFloorState = null;
-  game.floorsCompleted++;
   game.moveToNextFloor();
   await continueGameAfterMinigame(interaction, game);
 }
@@ -7291,7 +7318,6 @@ async function handleS2BossSharkContinue(interaction, game) {
     game.totalMoney = Math.max(0, game.totalMoney - state.collateral);
   }
   game.bossFloorState = null;
-  game.floorsCompleted++;
   game.moveToNextFloor();
   await continueGameAfterMinigame(interaction, game);
 }
@@ -7314,7 +7340,6 @@ async function handleS2BossOperatorContinue(interaction, game) {
     else if (state.selectedVault.type === 'trap') game.totalMoney = Math.floor(game.totalMoney * 0.5);
   }
   game.bossFloorState = null;
-  game.floorsCompleted++;
   game.moveToNextFloor();
   await continueGameAfterMinigame(interaction, game);
 }
@@ -7478,6 +7503,99 @@ async function handleMinigameMasterCommand(interaction) {
   await interaction.reply({ embeds: [embed], components: buttons });
 }
 
+async function launchMGMMinigame(interaction, session, minigameType) {
+  const testGame = new GameState(interaction.user.id, interaction.user.username, interaction.channelId, interaction.guildId);
+  testGame.totalMoney = 500000;
+  testGame.startMoney = 500000;
+  testGame.activeEffects = [];
+  testGame.mgmSession = session;
+  testGame.mgmMinigameType = minigameType;
+  testGame.currentRound = session.round;
+  testGame.isSeason2 = true;
+
+  gameManager.activeGames.set(interaction.channelId, testGame);
+
+  const usesEditReply = ['laser_infiltration', 'blind_auction', 'bomb_defusal', 'high_roller_blackjack'].includes(minigameType);
+  if (!usesEditReply) {
+    await interaction.editReply({ content: `🎮 **Launching ${minigameType.replace(/_/g, ' ').toUpperCase()}...**` });
+  }
+
+  try {
+    switch (minigameType) {
+      case 'laser_infiltration':
+        await handleLaserInfiltration(interaction, testGame);
+        break;
+      case 'blind_auction':
+        await handleBlindAuction(interaction, testGame);
+        break;
+      case 'bomb_defusal':
+        await handleBombDefusal(interaction, testGame);
+        break;
+      case 'high_roller_blackjack':
+        await handleHighRollerBlackjack(interaction, testGame);
+        break;
+      case 'vault':
+        await handleVaultMinigame(interaction, testGame);
+        break;
+      case 'mega_grid':
+        await handleMegaGridMinigame(interaction, testGame);
+        break;
+      case 'boiling_point':
+        await handleBoilingPointMinigame(interaction, testGame);
+        break;
+      case 'operator_roshambo':
+        await handleOperatorRoshamboMinigame(interaction, testGame);
+        break;
+      case 'hideout_breakthrough':
+        await handleHideoutBreakthroughMinigame(interaction, testGame);
+        break;
+      case 'babushka':
+        await handleBabushkaMinigame(interaction, testGame);
+        break;
+      case 'infinity_percent':
+        await handleInfinityPercentMinigame(interaction, testGame);
+        break;
+      case 'door_escape':
+        await handleDoorEscapeMinigame(interaction, testGame);
+        break;
+      case 'advance_boardwalk':
+        await handleAdvanceBoardwalkMinigame(interaction, testGame);
+        break;
+      case 'bank_buster':
+        await handleBankBusterMinigame(interaction, testGame);
+        break;
+      case 'block_party':
+        await handleBlockPartyMinigame(interaction, testGame);
+        break;
+      case 'community_chest':
+        await handleCommunityChestMinigame(interaction, testGame);
+        break;
+      case 'electric_company':
+      case 'power_grid':
+        await handlePowerGridMinigame(interaction, testGame);
+        break;
+      case 'park_it':
+        await handleParkItMinigame(interaction, testGame);
+        break;
+      case 'ride_rails':
+        await handleRideRailsMinigame(interaction, testGame);
+        break;
+      case 'go_big_or_go_broke':
+        await handleGoBigOrGoBrokeMinigame(interaction, testGame);
+        break;
+      default:
+        await handleMegaGridMinigame(interaction, testGame);
+        break;
+    }
+  } catch (err) {
+    console.error(`Error launching MGM minigame ${minigameType}:`, err);
+    gameManager.endGame(interaction.channelId);
+    if (interaction.deferred && !interaction.replied) {
+      await interaction.editReply({ content: `❌ Error launching minigame: ${err.message}` });
+    }
+  }
+}
+
 async function handleS2MGMAction(interaction, action) {
   const session = minigameMasterSessions.get(interaction.channelId);
   if (!session) {
@@ -7508,27 +7626,13 @@ async function handleS2MGMAction(interaction, action) {
     if (session.currentMinigameIndex >= session.roundMinigames.length) {
       return interaction.reply({ content: '⚠️ All minigames for this round have been played! Click Proceed to Next Round.', ephemeral: true });
     }
+    if (gameManager.hasActiveGame(interaction.channelId)) {
+      return interaction.reply({ content: '⚠️ A minigame is already in progress in this channel! Please finish it first.', ephemeral: true });
+    }
     const minigameType = session.roundMinigames[session.currentMinigameIndex];
 
-    const baseRewards = [50000, 100000, 200000, 350000, 500000, 750000, 1000000];
-    const earned = baseRewards[Math.floor(Math.random() * baseRewards.length)];
-    session.recordGameEarnings(interaction.user.id, minigameType, earned);
-    session.currentMinigameIndex++;
-
-    const roundMulti = session.round === 2 ? 2 : (session.round === 3 ? 3 : 1);
-    const totalEarnedWithMulti = earned * roundMulti;
-
-    const embed = session.createRoundEmbed();
-    const buttons = session.createRoundButtons();
-
-    await interaction.reply({
-      content: `🎉 **${interaction.user.username}** challenged **${minigameType.replace(/_/g, ' ').toUpperCase()}** and banked **$${totalEarnedWithMulti.toLocaleString()}** (Base: $${earned.toLocaleString()} x ${roundMulti})!`,
-    });
-    try {
-      await interaction.message.edit({ embeds: [embed], components: buttons });
-    } catch (editErr) {
-      console.error('Error updating MGM round message:', editErr);
-    }
+    await interaction.deferReply();
+    await launchMGMMinigame(interaction, session, minigameType);
   } else if (action === 'next_round' || action === 'round2' || action === 'round3') {
     if (session.round === 1) {
       session.advanceToRound2();

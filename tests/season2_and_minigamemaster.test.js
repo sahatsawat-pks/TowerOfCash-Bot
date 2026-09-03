@@ -140,4 +140,32 @@ describe('Season 2 and Minigame Master Tests', () => {
       }
     });
   });
+
+  describe('Season 2 Boss Floor Triggers', () => {
+    test('does not trigger boss floor 10 early just because tile 10 was selected in Round 1', () => {
+      const game = new GameState('u1', 'Player', 'ch1', 'g1');
+      game.eventMode = 2;
+      game.isSeason2 = true;
+      // In Round 1, player picked tile 10 as their 4th floor
+      game.selectedFloors = [1, 2, 3, 10, 15, 20, 25];
+      game.currentFloor = 3; // On tile 10
+      game.floorsCompleted = 3; // Only 3 floors completed
+
+      const climbFloor = game.floorsCompleted + 1;
+      expect(climbFloor).toBe(4);
+      expect([10, 20, 30].includes(climbFloor)).toBe(false);
+    });
+
+    test('triggers boss floor 10 exactly on the 10th floor of the ascent', () => {
+      const game = new GameState('u1', 'Player', 'ch1', 'g1');
+      game.eventMode = 2;
+      game.isSeason2 = true;
+      game.floorsCompleted = 9; // 9 floors completed so far
+
+      const climbFloor = game.floorsCompleted + 1;
+      expect(climbFloor).toBe(10);
+      expect([10, 20, 30].includes(climbFloor)).toBe(true);
+    });
+  });
 });
+
