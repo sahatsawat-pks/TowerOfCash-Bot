@@ -775,7 +775,17 @@ async function handleBoilingPointAction(interaction, game, action) {
 const commands = [
   new SlashCommandBuilder()
     .setName('play')
-    .setDescription('Start a new Tower of Cash game'),
+    .setDescription('Start a new Tower of Cash game')
+    .addStringOption(option =>
+      option.setName('mode')
+        .setDescription('Select game mode for this session (optional)')
+        .setRequired(false)
+        .addChoices(
+          { name: '🌟 Season 2 (The Apex Tower - Pacts, Bosses, Elite Minigames)', value: 'season2' },
+          { name: '✨ Season 1 (30 Floors, Minigames)', value: 'season1' },
+          { name: '🎮 Minigame Master (Tournament/Gauntlet)', value: 'minigame_master' },
+          { name: '🎯 Normal Mode (21 Floors)', value: 'normal' }
+        )),
 
   new SlashCommandBuilder()
     .setName('leaderboard')
@@ -955,7 +965,7 @@ const commands = [
 
   new SlashCommandBuilder()
     .setName('event-mode')
-    .setDescription('Set game mode: Normal, Season 1, or Season 2 (The Apex Tower) (Admin only)')
+    .setDescription('Set game mode: Normal, Season 1, Season 2, or Minigame Master (Admin only)')
     .addStringOption(option =>
       option.setName('action')
         .setDescription('Select Season mode')
@@ -963,6 +973,7 @@ const commands = [
         .addChoices(
           { name: '🌟 Season 2 (The Apex Tower - Pacts, Bosses, Elite Minigames)', value: 'season2' },
           { name: '✨ Season 1 (30 Floors, Minigames)', value: 'enable' },
+          { name: '🎮 Minigame Master (Minigame Gauntlet Mode)', value: 'minigame_master' },
           { name: '🎯 Normal Mode (21 Floors)', value: 'disable' }
         ))
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
@@ -3443,8 +3454,19 @@ async function handlePlayCommand(interaction) {
     }
   }
 
-  // Create new game (with event mode check)
-  const game = await gameManager.createGame(user.id, user.username, channelId, guildId, db);
+  const selectedMode = interaction.options.getString('mode');
+
+  if (selectedMode === 'minigame_master') {
+    return handleMinigameMasterCommand(interaction);
+  }
+
+  const serverMode = await db.getEventMode(guildId);
+  if (!selectedMode && (serverMode === 3 || serverMode === 'minigame_master')) {
+    return handleMinigameMasterCommand(interaction);
+  }
+
+  // Create new game (with event mode check or mode override)
+  const game = await gameManager.createGame(user.id, user.username, channelId, guildId, db, selectedMode);
   if (!game) {
     return interaction.reply({ content: '❌ Failed to create game!', flags: 64 });
   }
@@ -4735,21 +4757,30 @@ async function handleStopGameCommand(interaction) {
       }
 
       // Check RTAB game
-      // if (gameType === 'all' || gameType === 'rtab') {
-      //   const rtabLobby = rtabLobbies.get(channelId);
-      //   const rtabGame = rtabGames.get(channelId);
-      //   
-      //   if (rtabLobby) {
-      //     rtabLobbies.delete(channelId);
-      //     stoppedGames.push('RTAB Lobby');
-      //   }
-      //   
-      //   if (rtabGame) {
-      //     const playerNames = rtabGame.players.map(p => p.username).join(', ');
-      //     rtabGames.delete(channelId);
-      //     stoppedGames.push(`RTAB Game (${playerNames})`);
-      //   }
-      // }
+      if (gameType === 'all' || gameType === 'rtab') {
+        const rtabLobby = rtabLobbies.get(channelId);
+        const rtabGame = rtabGames.get(channelId);
+        
+        if (rtabLobby) {
+          rtabLobbies.delete(channelId);
+          stoppedGames.push('RTAB Lobby');
+        }
+        
+        if (rtabGame) {
+          const playerNames = rtabGame.players.map(p => p.username).join(', ');
+          rtabGames.delete(channelId);
+          stoppedGames.push(`RTAB Game (${playerNames})`);
+        }
+      }
+
+      // Check Minigame Master session
+      if (gameType === 'all' || gameType === 'mgm' || gameType === 'minigamemaster') {
+        const mgmSession = minigameMasterSessions.get(channelId);
+        if (mgmSession) {
+          minigameMasterSessions.delete(channelId);
+          stoppedGames.push(`Minigame Master (${mgmSession.host.username})`);
+        }
+      }
 
       // Check HMIE game
       if (gameType === 'all' || gameType === 'hmie') {
@@ -4818,19 +4849,25 @@ async function handleStopGameCommand(interaction) {
       }
 
       // Stop RTAB games
-      // if (gameType === 'all' || gameType === 'rtab') {
-      //   stoppedCount.rtab = rtabLobbies.size + rtabGames.size;
-      //   for (const channelId of rtabLobbies.keys()) {
-      //     channelsToNotify.push({ channelId, type: 'rtab' });
-      //   }
-      //   for (const channelId of rtabGames.keys()) {
-      //     if (!channelsToNotify.find(c => c.channelId === channelId)) {
-      //       channelsToNotify.push({ channelId, type: 'rtab' });
-      //     }
-      //   }
-      //   rtabLobbies.clear();
-      //   rtabGames.clear();
-      // }
+      if (gameType === 'all' || gameType === 'rtab') {
+        stoppedCount.rtab = rtabLobbies.size + rtabGames.size;
+        for (const channelId of rtabLobbies.keys()) {
+          channelsToNotify.push({ channelId, type: 'rtab' });
+        }
+        for (const channelId of rtabGames.keys()) {
+          if (!channelsToNotify.find(c => c.channelId === channelId)) {
+            channelsToNotify.push({ channelId, type: 'rtab' });
+          }
+        }
+        rtabLobbies.clear();
+        rtabGames.clear();
+      }
+
+      // Stop Minigame Master sessions
+      if (gameType === 'all' || gameType === 'mgm' || gameType === 'minigamemaster') {
+        stoppedCount.mgm = minigameMasterSessions.size;
+        minigameMasterSessions.clear();
+      }
 
       // Stop HMIE games
       if (gameType === 'all' || gameType === 'hmie') {
@@ -4928,23 +4965,27 @@ client.on('interactionCreate', async (interaction) => {
   }
 
   // Lobby buttons and banker DM buttons don't require an active game in the current channel
-  // Lobby buttons and banker DM buttons don't require an active game in the current channel
-  const lobbyButtons = ['hmie_join', 'hmie_leave', 'hmie_start_now', 'hmie_faceoff_stop']; // removed: 'rtab_join', 'rtab_leave', 'rtab_start'
+  const lobbyButtons = [
+    'hmie_join', 'hmie_leave', 'hmie_start_now', 'hmie_faceoff_stop',
+    'rtab_join', 'rtab_leave', 'rtab_start',
+    's2_mgm_join', 's2_mgm_leave', 's2_mgm_start', 's2_mgm_standings'
+  ];
   const isLobbyButton = lobbyButtons.includes(interaction.customId);
-  // const isRTABAction = interaction.customId.startsWith('rtab_square_') || interaction.customId.startsWith('rtab_mg_') || interaction.customId.startsWith('rtab_market_');
-  const isRTABAction = false; // RTAB disabled
+  const isRTABAction = interaction.customId.startsWith('rtab_');
+  const isMGMAction = interaction.customId.startsWith('s2_mgm_');
   const isBankerDMButton = interaction.customId.startsWith('dond_banker_accept_') || interaction.customId.startsWith('dond_banker_reject_');
   const isMountCashmoreButton = interaction.customId.startsWith('mount_cashmore_');
   const isOneEggButton = interaction.customId.startsWith('one_egg_');
   const isNewYearGiftButton = interaction.customId === 'new_year_gift_claim' || interaction.customId === 'gift_list_prev' || interaction.customId === 'gift_list_next';
 
   const game = gameManager.getGame(interaction.channelId);
-  // const rtabGame = rtabGames.get(interaction.channelId);
-  const rtabGame = null; // RTAB disabled
+  const rtabGame = rtabGames.get(interaction.channelId);
+  const rtabLobby = rtabLobbies.get(interaction.channelId);
+  const mgmSession = minigameMasterSessions.get(interaction.channelId);
   const mountCashmoreGame = mountCashmoreGames.get(interaction.channelId);
   const oneEggGame = oneEggGames.get(interaction.channelId);
 
-  if (!game && !rtabGame && !mountCashmoreGame && !oneEggGame && !isLobbyButton && !isBankerDMButton && !isRTABAction && !isMountCashmoreButton && !isOneEggButton && !isNewYearGiftButton) {
+  if (!game && !rtabGame && !rtabLobby && !mgmSession && !mountCashmoreGame && !oneEggGame && !isLobbyButton && !isBankerDMButton && !isRTABAction && !isMGMAction && !isMountCashmoreButton && !isOneEggButton && !isNewYearGiftButton) {
     return safeInteractionResponse(interaction, 'reply', { content: '❌ No active game found!', ephemeral: true });
   }
 
@@ -4965,8 +5006,8 @@ client.on('interactionCreate', async (interaction) => {
       return safeInteractionResponse(interaction, 'reply', { content: '❌ You are not the Banker for this game!', ephemeral: true });
     }
     // If it is the banker (or auto banker but user clicked? shouldn't happen), proceed
-  } else if (!isLobbyButton && !interaction.customId.startsWith('hmie_') && !isMountCashmoreButton && game && game.userId !== interaction.user.id) {
-    // Skip ownership check for lobby buttons, HMIE buttons (multiplayer game), and Mount Ca$hmore buttons
+  } else if (!isLobbyButton && !isRTABAction && !isMGMAction && !interaction.customId.startsWith('hmie_') && !isMountCashmoreButton && game && game.userId !== interaction.user.id) {
+    // Skip ownership check for lobby buttons, RTAB, MGM, HMIE buttons (multiplayer game), and Mount Ca$hmore buttons
     return safeInteractionResponse(interaction, 'reply', { content: '❌ This is not your game!', ephemeral: true });
   } else if (isMountCashmoreButton && mountCashmoreGame && mountCashmoreGame.userId !== interaction.user.id) {
     // Check ownership for Mount Ca$hmore games
@@ -6472,6 +6513,51 @@ client.on('interactionCreate', async (interaction) => {
             '• Based on potential future earnings\n' +
             '• Usually 80-120% of your current money\n' +
             '• Can be a lifeline if you\'re risking a lot!'
+        },
+        laser_infiltration: {
+          title: '🚨 Laser Infiltration (Season 2)',
+          description: '**Navigate the 4-Sector High-Security Laser Grid!**\n\n' +
+            '**Rules:**\n' +
+            '• 4 Sectors to breach, each with 3 laser nodes (Left, Center, Right)\n' +
+            '• In each sector, only 1-2 nodes are safe path\n' +
+            '• Crossing safe nodes earns escalating cash up to $1,000,000!\n' +
+            '• Tripping an alarm reduces safety or aborts with partial payout.'
+        },
+        blind_auction: {
+          title: '🔨 The Blind Auction (Season 2)',
+          description: '**Outbid the Rival AI for the Secret Vault!**\n\n' +
+            '**Rules:**\n' +
+            '• A mystery container is up for auction with a hidden secret value\n' +
+            '• Choose your bid from 4 tiered amounts\n' +
+            '• Rival AI bids blindly against you\n' +
+            '• If your bid wins, you claim the container contents minus your bid cost!'
+        },
+        bomb_defusal: {
+          title: '💣 Bomb Defusal (Season 2)',
+          description: '**Cut the Right Wire for $2,500,000 or Boom!**\n\n' +
+            '**Rules:**\n' +
+            '• 4 colored wires on a ticking time bomb\n' +
+            '• 1 Defusal wire: Wins **$2,500,000 JACKPOT**!\n' +
+            '• 1 Safe wire: Escapes safely with +$250,000\n' +
+            '• 2 Detonator wires: Bomb detonates, reducing bank by 50%!'
+        },
+        high_roller_blackjack: {
+          title: '🃏 High Roller Blackjack (Season 2)',
+          description: '**Classic 21 vs the House Dealer!**\n\n' +
+            '**Rules:**\n' +
+            '• Standard Blackjack rules: Hit, Stand, or Double Down\n' +
+            '• Dealer must hit on soft 17\n' +
+            '• Natural Blackjack pays 3:2\n' +
+            '• Win doubles your floor payout; loss forfeits floor bonus.'
+        },
+        minigame_master: {
+          title: '🏆 Minigame Master Tournament',
+          description: '**The Ultimate All-Minigame Gauntlet!**\n\n' +
+            '**Structure:**\n' +
+            '• **Round 1 (Qualifiers):** 5 Random Minigames (Top 5 earners advance)\n' +
+            '• **Round 2 (Semi-Finals):** 3 Elite Minigames with **2x Multiplier** (Top 2 advance)\n' +
+            '• **Round 3 (Finals):** Grand Finale Showdown with **3x Multiplier**\n\n' +
+            'Play solo with `/minigame-master mode:solo` or host a lobby with `/minigame-master mode:multi`!'
         }
       };
 
@@ -7367,7 +7453,7 @@ async function handleS2PactSelect(interaction, game, pactId) {
 
 // Minigame Master Slash & Button Handlers
 async function handleMinigameMasterCommand(interaction) {
-  const mode = interaction.options.getString('mode') || 'multi';
+  const mode = (interaction.options && interaction.options.getString('mode')) || 'multi';
   const channelId = interaction.channelId;
 
   if (minigameMasterSessions.has(channelId)) {
@@ -7377,7 +7463,7 @@ async function handleMinigameMasterCommand(interaction) {
   const session = new MinigameMasterSession(channelId, interaction.guildId, {
     id: interaction.user.id,
     username: interaction.user.username
-  });
+  }, mode === 'solo');
   minigameMasterSessions.set(channelId, session);
 
   if (mode === 'solo') {
@@ -7400,7 +7486,7 @@ async function handleS2MGMAction(interaction, action) {
 
   if (action === 'join') {
     const res = session.addPlayer(interaction.user.id, interaction.user.username);
-    if (!res.success) return interaction.reply({ content: `❌ ${res.error}`, ephemeral: true });
+    if (!res) return interaction.reply({ content: '❌ You are already registered in this tournament!', ephemeral: true });
     const embed = session.createLobbyEmbed();
     const buttons = session.createLobbyButtons();
     return interaction.update({ embeds: [embed], components: buttons });
@@ -7418,19 +7504,59 @@ async function handleS2MGMAction(interaction, action) {
     const embed = session.createRoundEmbed();
     const buttons = session.createRoundButtons();
     return interaction.update({ embeds: [embed], components: buttons });
-  } else if (action === 'round2') {
-    const res = session.advanceToRound2();
+  } else if (action === 'play') {
+    if (session.currentMinigameIndex >= session.roundMinigames.length) {
+      return interaction.reply({ content: '⚠️ All minigames for this round have been played! Click Proceed to Next Round.', ephemeral: true });
+    }
+    const minigameType = session.roundMinigames[session.currentMinigameIndex];
+
+    const baseRewards = [50000, 100000, 200000, 350000, 500000, 750000, 1000000];
+    const earned = baseRewards[Math.floor(Math.random() * baseRewards.length)];
+    session.recordGameEarnings(interaction.user.id, minigameType, earned);
+    session.currentMinigameIndex++;
+
+    const roundMulti = session.round === 2 ? 2 : (session.round === 3 ? 3 : 1);
+    const totalEarnedWithMulti = earned * roundMulti;
+
+    const embed = session.createRoundEmbed();
+    const buttons = session.createRoundButtons();
+
+    await interaction.reply({
+      content: `🎉 **${interaction.user.username}** challenged **${minigameType.replace(/_/g, ' ').toUpperCase()}** and banked **$${totalEarnedWithMulti.toLocaleString()}** (Base: $${earned.toLocaleString()} x ${roundMulti})!`,
+    });
+    try {
+      await interaction.message.edit({ embeds: [embed], components: buttons });
+    } catch (editErr) {
+      console.error('Error updating MGM round message:', editErr);
+    }
+  } else if (action === 'next_round' || action === 'round2' || action === 'round3') {
+    if (session.round === 1) {
+      session.advanceToRound2();
+    } else if (session.round === 2) {
+      session.advanceToRound3();
+    } else {
+      const summaryEmbed = session.createRoundSummaryEmbed(3);
+      minigameMasterSessions.delete(interaction.channelId);
+      return interaction.update({
+        content: '🏆 **TOURNAMENT COMPLETE!** Hail the Minigame Master Champion!',
+        embeds: [summaryEmbed],
+        components: []
+      });
+    }
     const embed = session.createRoundEmbed();
     const buttons = session.createRoundButtons();
     return interaction.update({ embeds: [embed], components: buttons });
-  } else if (action === 'round3') {
-    const res = session.advanceToRound3();
-    const embed = session.createRoundEmbed();
-    const buttons = session.createRoundButtons();
-    return interaction.update({ embeds: [embed], components: buttons });
+  } else if (action === 'standings') {
+    const summaryEmbed = session.createRoundSummaryEmbed(session.round);
+    return interaction.reply({ embeds: [summaryEmbed], ephemeral: true });
   } else if (action === 'close') {
+    const summaryEmbed = session.createRoundSummaryEmbed(session.round);
     minigameMasterSessions.delete(interaction.channelId);
-    return interaction.update({ content: '🏆 **Tournament Concluded!** Thank you for playing Minigame Master!', embeds: [], components: [] });
+    return interaction.update({
+      content: '🏆 **Tournament Concluded!** Thank you for playing Minigame Master!',
+      embeds: [summaryEmbed],
+      components: []
+    });
   }
 }
 
@@ -7699,13 +7825,16 @@ async function handleEventModeCommand(interaction) {
     const action = interaction.options.getString('action');
     const guildId = interaction.guildId;
 
-    const enable = action === 'enable';
-    await db.setEventMode(guildId, enable);
+    await db.setEventMode(guildId, action);
 
-    if (enable) {
-      await interaction.editReply({ content: '🎉 Event mode enabled for this server. Future games will include special event tiles.' });
+    if (action === 'season2' || action === '2' || action === 2) {
+      await interaction.editReply({ content: '🌟 **Season 2 (The Apex Tower) enabled!** Games now feature 30 floors, Roguelike Ascent Pacts, Guardian Boss encounters (Floors 10, 20, 30), and Elite Minigames!' });
+    } else if (action === 'minigame_master' || action === '3' || action === 3) {
+      await interaction.editReply({ content: '🎮 **Minigame Master Mode enabled!** Games in this server will now launch the Minigame Master Gauntlet Tournament!' });
+    } else if (action === 'enable' || action === '1' || action === 1 || action === 'season1') {
+      await interaction.editReply({ content: '✨ **Season 1 enabled!** Games now feature 30 floors and classic event tiles.' });
     } else {
-      await interaction.editReply({ content: '🔕 Event mode disabled for this server. Games will run in normal mode.' });
+      await interaction.editReply({ content: '🎯 **Normal Mode enabled!** Games will run in standard 21-floor mode.' });
     }
   } catch (error) {
     console.error('Error in event-mode command:', error);
@@ -8624,18 +8753,51 @@ async function handleCurrentModeCommand(interaction) {
 
     const eventMode = await db.getEventMode(interaction.guildId);
 
+    let title = '🏢 Normal Mode Active';
+    let color = '#FFD700';
+    let description = '';
+
+    if (eventMode === 2 || eventMode === 'season2' || eventMode === '2') {
+      title = '🌟 Season 2 (The Apex Tower) Active 🌟';
+      color = '#9B59B6';
+      description = '**Season 2: The Apex Tower is currently ENABLED for this server!**\n\n' +
+        '👑 **Season 2 Features Active:**\n' +
+        '• 30 Floors across 8 rounds\n' +
+        '• Roguelike Ascent Pacts (Pick 1 boon/curse each round)\n' +
+        '• Guardian Boss Floors (Floor 10 Architect, Floor 20 Loan Shark, Floor 30 Grand Vault)\n' +
+        '• 4 Elite Minigames: Laser Infiltration, Blind Auction, Bomb Defusal, Blackjack\n' +
+        '• Season 1 Classic Minigames & 66+ Mystery Box items\n';
+    } else if (eventMode === 3 || eventMode === 'minigame_master' || eventMode === '3') {
+      title = '🎮 Minigame Master Mode Active 🎮';
+      color = '#3498DB';
+      description = '**Minigame Master is currently ENABLED for this server!**\n\n' +
+        '🏆 **Features Active:**\n' +
+        '• Play ONLY minigames across 3 tournament rounds\n' +
+        '• Round 1: 5 Random Qualifying Minigames\n' +
+        '• Round 2: 3 Elite Semi-Final Minigames (2x Multiplier)\n' +
+        '• Round 3: Grand Finale Championship Showdown (3x Multiplier)\n';
+    } else if (eventMode === 1 || eventMode === 'season1' || eventMode === '1' || eventMode === true || eventMode === 'enable') {
+      title = '✨ Season 1 Mode Active ✨';
+      color = '#FF1493';
+      description = '**Season 1 Mode is currently ENABLED for this server!**\n\n' +
+        '✨ **Season 1 Features Active:**\n' +
+        '• 30 Floors across 8 rounds\n' +
+        '• Mega Grid & The ∞% minigames\n' +
+        '• Boost Multiplier & Random 5\n' +
+        '• The Vault, Operator Offer & Hideout Breakthrough\n';
+    } else {
+      title = '🏢 Normal Mode Active';
+      color = '#FFD700';
+      description = '**Normal Mode is currently active for this server.**\n\n' +
+        '📊 **Current Features:**\n' +
+        '• 21 Floors across 6 rounds\n' +
+        '• Classic gameplay\n';
+    }
+
     const embed = new (require('discord.js').EmbedBuilder)()
-      .setColor(eventMode ? '#FF1493' : '#FFD700')
-      .setTitle(eventMode ? '🌟 Season 1 Mode Active 🌟' : '🏢 Normal Mode Active')
-      .setDescription(
-        (eventMode ?
-          '**Season 1 Mode is currently ENABLED for this server!**\n\n' +
-          '✨ **Season 1 Features Active:**\n• 30 Floors across 8 rounds\n• Mega Grid & The ∞% minigames\n• Boost Multiplier & Random 5\n• The Vault, Operator Offer & Hideout Breakthrough\n' :
-          '**Normal Mode is currently active for this server.**\n\n' +
-          '📊 **Current Features:**\n• 21 Floors across 6 rounds\n• Classic gameplay\n'
-        ) +
-        '\n*Admins can toggle modes with `/event-mode`*'
-      )
+      .setColor(color)
+      .setTitle(title)
+      .setDescription(description + '\n*Admins can toggle server modes with `/event-mode`*\n*Players can also select mode per game via `/play mode:...`*')
       .setTimestamp();
 
     await interaction.editReply({ embeds: [embed] });

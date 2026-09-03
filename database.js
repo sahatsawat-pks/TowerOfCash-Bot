@@ -845,6 +845,7 @@ class Database {
     return new Promise((resolve, reject) => {
       let val = 0;
       if (mode === 2 || mode === 'season2' || mode === '2') val = 2;
+      else if (mode === 3 || mode === 'minigame_master' || mode === '3') val = 3;
       else if (mode === true || mode === 1 || mode === 'season1' || mode === '1' || mode === 'enable') val = 1;
       this.db.run(
         `INSERT INTO guild_settings (guild_id, event_mode) VALUES (?, ?)

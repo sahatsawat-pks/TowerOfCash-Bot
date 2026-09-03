@@ -69,6 +69,9 @@ class MinigameMasterSession {
   }
 
   startRound1() {
+    if (this.players.size < 1) {
+      return { success: false, error: 'No players registered!' };
+    }
     this.status = 'round1';
     this.round = 1;
 
@@ -80,6 +83,11 @@ class MinigameMasterSession {
     }
     this.roundMinigames = shuffled.slice(0, 5);
     this.currentMinigameIndex = 0;
+    return { success: true };
+  }
+
+  advanceToRound2() {
+    return this.startRound2();
   }
 
   startRound2() {
@@ -89,8 +97,7 @@ class MinigameMasterSession {
     // Determine top 5 from Round 1
     const sorted = [...this.players.values()].sort((a, b) => b.totalEarnings - a.totalEarnings);
     if (this.isSolo) {
-      // Solo qualifies if earned >= $500k
-      sorted[0].qualified = sorted[0].totalEarnings >= 500000;
+      sorted[0].qualified = true;
     } else {
       sorted.forEach((p, idx) => {
         p.qualified = idx < 5;
@@ -105,6 +112,11 @@ class MinigameMasterSession {
     }
     this.roundMinigames = shuffled.slice(0, 3);
     this.currentMinigameIndex = 0;
+    return { success: true };
+  }
+
+  advanceToRound3() {
+    return this.startRound3();
   }
 
   startRound3() {
@@ -114,7 +126,7 @@ class MinigameMasterSession {
     // Top 2 qualify for Championship
     const sorted = [...this.players.values()].filter(p => p.qualified).sort((a, b) => b.totalEarnings - a.totalEarnings);
     if (this.isSolo) {
-      sorted[0].qualified = sorted[0].totalEarnings >= 2000000;
+      sorted[0].qualified = true;
     } else {
       sorted.forEach((p, idx) => {
         p.qualified = idx < 2;
@@ -123,6 +135,7 @@ class MinigameMasterSession {
 
     this.roundMinigames = ['go_big_or_go_broke']; // Grand Finale Showdown
     this.currentMinigameIndex = 0;
+    return { success: true };
   }
 
   recordGameEarnings(userId, gameType, earnings) {
@@ -201,6 +214,108 @@ class MinigameMasterSession {
       .setFooter({ text: `Season 2 Minigame Master • Round ${roundNum} Summary` });
 
     return embed;
+  }
+
+  createRoundEmbed() {
+    const minigameNames = {
+      laser_infiltration: '🚨 Laser Infiltration (Season 2)',
+      blind_auction: '🔨 The Blind Auction (Season 2)',
+      bomb_defusal: '💣 Bomb Defusal (Season 2)',
+      high_roller_blackjack: '🃏 High Roller Blackjack (Season 2)',
+      vault: '🏦 The Vault',
+      mega_grid: '🎰 Mega Grid',
+      boiling_point: '🔥 Boiling Point',
+      operator_roshambo: '✊ Operator Roshambo',
+      hideout_breakthrough: '🏚️ Hideout Breakthrough',
+      babushka: '🪆 Babushka',
+      infinity_percent: '♾️ The ∞%',
+      door_escape: '🚪 Door Escape',
+      advance_boardwalk: '🎲 Advance to Boardwalk',
+      bank_buster: '🔐 Bank Buster',
+      block_party: '🏘️ Block Party',
+      community_chest: '🎁 Community Chest',
+      electric_company: '⚡ Electric Company',
+      park_it: '🚗 Park It',
+      ride_rails: '🚂 Ride the Rails',
+      go_big_or_go_broke: '💥 Go Big or Go Broke (Championship Final)'
+    };
+
+    const currentMg = this.roundMinigames[this.currentMinigameIndex] || 'All Completed';
+    const mgLabel = minigameNames[currentMg] || currentMg;
+    const multiplier = this.round === 2 ? '2x' : (this.round === 3 ? '3x' : '1x');
+    const isRoundOver = this.currentMinigameIndex >= this.roundMinigames.length;
+
+    const minigameList = this.roundMinigames.map((mg, i) => {
+      const name = minigameNames[mg] || mg;
+      if (i === this.currentMinigameIndex) return `➡️ **${i + 1}. ${name}** (Current Game)`;
+      if (i < this.currentMinigameIndex) return `✅ ${i + 1}. ${name} (Completed)`;
+      return `⏳ ${i + 1}. ${name}`;
+    }).join('\n');
+
+    const qualifiedPlayers = [...this.players.values()].filter(p => p.qualified);
+    const playerLeaderboard = qualifiedPlayers
+      .sort((a, b) => b.totalEarnings - a.totalEarnings)
+      .map((p, idx) => `${idx + 1}. **${p.username}**: $${p.totalEarnings.toLocaleString()}`)
+      .join('\n') || 'No qualified players';
+
+    const embed = new EmbedBuilder()
+      .setColor(this.round === 3 ? '#E74C3C' : (this.round === 2 ? '#E67E22' : '#3498DB'))
+      .setTitle(`🎮 MINIGAME MASTER — ROUND ${this.round} (${multiplier} Multiplier) 🎮`)
+      .setDescription(
+        `**Mode**: ${this.isSolo ? 'Solo Gauntlet' : 'Multiplayer Tournament'}\n` +
+        `**Round Progress**: Game ${Math.min(this.currentMinigameIndex + 1, this.roundMinigames.length)} of ${this.roundMinigames.length}\n` +
+        `**Active Game**: **${isRoundOver ? 'Round Complete!' : mgLabel}**\n` +
+        `**Multiplier**: All earnings in this round are multiplied by **${multiplier}**!\n\n` +
+        `### 📋 Round Minigames:\n${minigameList}\n\n` +
+        `### 🏆 Current Standings:\n${playerLeaderboard}\n\n` +
+        (isRoundOver
+          ? `🎉 **Round ${this.round} complete!** Proceed to next round or view final standings.`
+          : `*Click **Play Current Minigame** to challenge the active game!*`)
+      )
+      .setFooter({ text: `Season 2 Minigame Master • Round ${this.round}` });
+
+    return embed;
+  }
+
+  createRoundButtons() {
+    const isRoundOver = this.currentMinigameIndex >= this.roundMinigames.length;
+    const isTournamentOver = this.round >= 3 && isRoundOver;
+
+    const row = new ActionRowBuilder();
+
+    if (!isRoundOver) {
+      row.addComponents(
+        new ButtonBuilder()
+          .setCustomId('s2_mgm_play')
+          .setLabel('🎮 Play Current Minigame')
+          .setStyle(ButtonStyle.Success)
+      );
+    }
+
+    row.addComponents(
+      new ButtonBuilder()
+        .setCustomId('s2_mgm_standings')
+        .setLabel('📊 Standings')
+        .setStyle(ButtonStyle.Secondary)
+    );
+
+    if (isRoundOver && !isTournamentOver) {
+      row.addComponents(
+        new ButtonBuilder()
+          .setCustomId('s2_mgm_next_round')
+          .setLabel(`Proceed to Round ${this.round + 1} ➔`)
+          .setStyle(ButtonStyle.Primary)
+      );
+    }
+
+    row.addComponents(
+      new ButtonBuilder()
+        .setCustomId('s2_mgm_close')
+        .setLabel('❌ End Tournament')
+        .setStyle(ButtonStyle.Danger)
+    );
+
+    return [row];
   }
 
   createNextRoundButtons() {

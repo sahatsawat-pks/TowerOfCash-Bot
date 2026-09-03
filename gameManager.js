@@ -10,9 +10,17 @@ class GameState {
     this.username = username;
     this.channelId = channelId;
     this.guildId = guildId;
-    this.eventMode = eventMode;
-    this.isSeason2 = eventMode === 2 || eventMode === 'season2' || eventMode === '2';
-    this.maxFloors = eventMode ? 30 : 21;
+    if (eventMode === 2 || eventMode === 'season2' || eventMode === '2') {
+      this.eventMode = 2;
+      this.isSeason2 = true;
+    } else if (eventMode === 1 || eventMode === '1' || eventMode === 'season1' || eventMode === 'enable' || eventMode === true) {
+      this.eventMode = 1;
+      this.isSeason2 = false;
+    } else {
+      this.eventMode = 0;
+      this.isSeason2 = false;
+    }
+    this.maxFloors = this.eventMode ? 30 : 21;
     this.currentRound = 1; // 1-6 for normal mode, 1-8 for Season 1/2 mode
     this.activePact = null; // For Season 2 Ascent Pacts
     this.bossFloorState = null; // For Season 2 Guardian Boss Floors (10, 20, 30)
@@ -4063,12 +4071,15 @@ class GameManager {
     this.activeGames = new Map(); // channelId -> GameState
   }
 
-  async createGame(userId, username, channelId, guildId, db) {
+  async createGame(userId, username, channelId, guildId, db, modeOverride = null) {
     if (this.activeGames.has(channelId)) {
       return null; // Game already exists in this channel
     }
-    // Check if event mode is enabled for this guild
-    const eventMode = await db.getEventMode(guildId);
+    // Check if event mode is overridden or enabled for this guild
+    let eventMode = modeOverride;
+    if (eventMode === null || eventMode === undefined) {
+      eventMode = await db.getEventMode(guildId);
+    }
     const game = new GameState(userId, username, channelId, guildId, eventMode);
     this.activeGames.set(channelId, game);
     return game;

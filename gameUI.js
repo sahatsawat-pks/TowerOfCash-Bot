@@ -254,12 +254,47 @@ class GameUI {
   }
 
   static createWelcomeEmbed(remainingPlays, eventMode = false) {
-    const floors = eventMode ? 30 : 21;
-    const rounds = eventMode ? 8 : 6;
-    const modeLabel = eventMode ? ' 🌟 Season 1 🌟' : '';
+    const isSeason2 = eventMode === 2 || eventMode === 'season2' || eventMode === '2';
+    const isSeason1 = eventMode === 1 || eventMode === 'season1' || eventMode === '1' || eventMode === true;
+    const floors = (isSeason2 || isSeason1) ? 30 : 21;
+    const rounds = (isSeason2 || isSeason1) ? 8 : 6;
+    let modeLabel = '';
+    let embedColor = '#FFD700';
+
+    if (isSeason2) {
+      modeLabel = ' 🌟 Season 2: The Apex Tower 🌟';
+      embedColor = '#9B59B6';
+    } else if (isSeason1) {
+      modeLabel = ' 🌟 Season 1 🌟';
+      embedColor = '#FF1493';
+    }
+
+    let featuresText = '';
+    if (isSeason2) {
+      featuresText = '**Season 2: The Apex Tower Features:**\n' +
+        '• Climb 30 floors across 8 rounds\n' +
+        '• Roguelike Ascent Pacts (Pick 1 powerful boon/curse each round)\n' +
+        '• Guardian Boss Floors (Floor 10 Architect, Floor 20 Loan Shark, Floor 30 Grand Vault)\n' +
+        '• 4 Elite Minigames: Laser Infiltration, Blind Auction, Bomb Defusal, Blackjack\n' +
+        '• Season 1 Classic Minigames & 66+ Mystery Box items\n' +
+        '• Mart-of-Cash & 60+ Achievements\n\n';
+    } else if (isSeason1) {
+      featuresText = '**Season 1 Features:**\n' +
+        '• 11+ Minigames including Go Big or Go Broke\n' +
+        '• Mystery Box with 66 unique items\n' +
+        '• Mart-of-Cash for robberies & purchases\n' +
+        '• Achievement system with 60+ unlockables\n' +
+        '• Peek system to preview floors\n' +
+        '• Round 3 special event\n' +
+        '• Mirror, ?, X-Protection special items\n\n';
+    } else {
+      featuresText = '**Features:**\n' +
+        '• 60+ achievements to unlock\n' +
+        '• Simple strategic gameplay\n\n';
+    }
 
     return new EmbedBuilder()
-      .setColor(eventMode ? '#FF1493' : '#FFD700')
+      .setColor(embedColor)
       .setTitle(`🏢 Welcome to Tower of Cash!${modeLabel} 🏢`)
       .setDescription(
         '**How to Play:**\n' +
@@ -267,17 +302,7 @@ class GameUI {
         '• Each round, select floors to play\n' +
         '• On each floor, choose LEFT ⬅️ or RIGHT ➡️\n' +
         '• Build your fortune or risk it all!\n\n' +
-        (eventMode ? '**Season 1 Features:**\n' +
-        '• 11+ Minigames including Go Big or Go Broke\n' +
-        '• Mystery Box with 66 unique items\n' +
-        '• Mart-of-Cash for robberies & purchases\n' +
-        '• Achievement system with 60+ unlockables\n' +
-        '• Peek system to preview floors\n' +
-        '• Round 3 special event\n' +
-        '• Mirror, ?, X-Protection special items\n\n' : 
-        '**Features:**\n' +
-        '• 60+ achievements to unlock\n' +
-        '• Simple strategic gameplay\n\n') +
+        featuresText +
         '**Win Conditions:**\n' +
         '• Complete all floors = Victory!\n' +
         '• Go to Lobby = Keep your winnings\n\n' +
@@ -5019,11 +5044,12 @@ class GameUI {
 
   static createMinigameListEmbed() {
     return new EmbedBuilder()
-      .setColor('#FF1493')
-      .setTitle('🎮 Minigame Details')
+      .setColor('#9B59B6')
+      .setTitle('🎮 Minigame Details & Rules')
       .setDescription(
-        '**Season 1 Minigames - Learn the rules!**\n\n' +
+        '**Season 1, Season 2 & Special Minigames - Learn the rules!**\n\n' +
         'Select a minigame below to view its rules and details:\n\n' +
+        '**Season 1 Classics:**\n' +
         '🏦 **The Vault** - Code-breaking challenge\n' +
         '🎰 **Mega Grid** - Grid-based luck game\n' +
         '🔥 **Boiling Point** - Temperature management\n' +
@@ -5032,7 +5058,14 @@ class GameUI {
         '🏚️ **Hideout Breakthrough** - Ascending number challenge\n' +
         '🪆 **Babushka** - Nesting doll risk game\n' +
         '📦 **Mystery Box** - Random item selection\n' +
-        '🚪 **Door Escape** - Find the escape door'
+        '🚪 **Door Escape** - Find the escape door\n\n' +
+        '**Season 2 Elite Challenges:**\n' +
+        '🚨 **Laser Infiltration** - 4-sector security bypass\n' +
+        '🔨 **The Blind Auction** - Outbid the AI\n' +
+        '💣 **Bomb Defusal** - High-stakes wire cutting\n' +
+        '🃏 **High Roller Blackjack** - Card game vs the Dealer\n\n' +
+        '**Special Tournament:**\n' +
+        '🏆 **Minigame Master** - 3-Round Minigame Gauntlet'
       )
       .setFooter({ text: 'Use the menu below to select a minigame' });
   }
@@ -5095,6 +5128,36 @@ class GameUI {
           description: 'Find the escape door',
           value: 'door_escape',
           emoji: '🚪'
+        },
+        {
+          label: 'Laser Infiltration (S2)',
+          description: 'Season 2 - 4-sector laser security grid',
+          value: 'laser_infiltration',
+          emoji: '🚨'
+        },
+        {
+          label: 'The Blind Auction (S2)',
+          description: 'Season 2 - Hidden reserve auction',
+          value: 'blind_auction',
+          emoji: '🔨'
+        },
+        {
+          label: 'Bomb Defusal (S2)',
+          description: 'Season 2 - Wire cut: $2.5M jackpot or boom',
+          value: 'bomb_defusal',
+          emoji: '💣'
+        },
+        {
+          label: 'High Roller Blackjack (S2)',
+          description: 'Season 2 - Beat the dealer up to 21',
+          value: 'high_roller_blackjack',
+          emoji: '🃏'
+        },
+        {
+          label: 'Minigame Master',
+          description: '3-Round Minigame Gauntlet Tournament',
+          value: 'minigame_master',
+          emoji: '🏆'
         }
       ]);
 
