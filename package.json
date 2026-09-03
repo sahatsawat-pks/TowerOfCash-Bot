@@ -10,6 +10,10 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
+  "allowScripts": {
+    "sqlite3": "*",
+    "unrs-resolver": "*"
+  },
   "keywords": [
     "discord",
     "bot",
