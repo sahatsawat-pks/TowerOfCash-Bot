@@ -5990,8 +5990,8 @@ client.on('interactionCreate', async (interaction) => {
     } else if (customId === 's2_auction_continue') {
       await handleS2AuctionContinue(interaction, game);
     } else if (customId.startsWith('s2_bomb_wire_')) {
-      const wireIndex = parseInt(customId.replace('s2_bomb_wire_', ''));
-      await handleS2BombCut(interaction, game, wireIndex);
+      const wire = customId.replace('s2_bomb_wire_', '');
+      await handleS2BombCut(interaction, game, wire);
     } else if (customId === 's2_bomb_continue') {
       await handleS2BombContinue(interaction, game);
     } else if (customId.startsWith('s2_blackjack_')) {
@@ -7347,15 +7347,15 @@ async function handleS2BossOperatorContinue(interaction, game) {
 // Season 2 Minigame: Laser Infiltration
 async function handleLaserInfiltration(interaction, game) {
   game.season2MinigameState = Season2Minigames.startLaserInfiltration(game.userId, game.username, game.totalMoney);
-  const embed = Season2Minigames.createLaserGridEmbed(game.season2MinigameState);
+  const embed = Season2Minigames.createLaserEmbed(game.season2MinigameState);
   const buttons = Season2Minigames.createLaserButtons(game.season2MinigameState);
   await interaction.editReply({ embeds: [embed], components: buttons });
 }
 
 async function handleS2LaserStep(interaction, game, colIndex) {
   if (!game || !game.season2MinigameState) return;
-  Season2Minigames.playLaserStep(game.season2MinigameState, colIndex);
-  const embed = Season2Minigames.createLaserGridEmbed(game.season2MinigameState);
+  Season2Minigames.stepLaserInfiltration(game.season2MinigameState, colIndex);
+  const embed = Season2Minigames.createLaserEmbed(game.season2MinigameState);
   const buttons = Season2Minigames.createLaserButtons(game.season2MinigameState);
   await interaction.update({ embeds: [embed], components: buttons });
 }
@@ -7363,10 +7363,10 @@ async function handleS2LaserStep(interaction, game, colIndex) {
 async function handleS2LaserContinue(interaction, game) {
   if (!game || !game.season2MinigameState) return;
   const state = game.season2MinigameState;
-  if (state.won) {
+  if (state.isSuccess) {
     game.totalMoney += 5000000;
-  } else if (state.busted) {
-    game.totalMoney = Math.floor(game.totalMoney * 0.5);
+  } else {
+    game.totalMoney = Math.max(0, game.totalMoney - (state.lostAmount || Math.floor(game.totalMoney * 0.5)));
   }
   game.season2MinigameState = null;
   await continueGameAfterMinigame(interaction, game);
@@ -7382,7 +7382,7 @@ async function handleBlindAuction(interaction, game) {
 
 async function handleS2AuctionBid(interaction, game, bidAmount) {
   if (!game || !game.season2MinigameState) return;
-  Season2Minigames.submitAuctionBid(game.season2MinigameState, bidAmount);
+  Season2Minigames.placeAuctionBid(game.season2MinigameState, bidAmount);
   const embed = Season2Minigames.createAuctionEmbed(game.season2MinigameState);
   const buttons = Season2Minigames.createAuctionButtons(game.season2MinigameState);
   await interaction.update({ embeds: [embed], components: buttons });
@@ -7391,17 +7391,19 @@ async function handleS2AuctionBid(interaction, game, bidAmount) {
 async function handleS2AuctionContinue(interaction, game) {
   if (!game || !game.season2MinigameState) return;
   const state = game.season2MinigameState;
-  if (state.won) {
+  if (state.winner && state.winner.isPlayer) {
     game.totalMoney = Math.max(0, game.totalMoney - state.playerBid);
     if (!game.activeEffects) game.activeEffects = [];
-    if (state.relic.id === 'golden_aegis') {
-      game.activeEffects.push({ type: 'gameOverImmunity', duration: 3, floorsRemaining: 3 });
-    } else if (state.relic.id === 'overdrive') {
-      game.activeEffects.push({ type: 'tripleNextFloor', duration: 1, floorsRemaining: 1 });
-    } else if (state.relic.id === 'xray_monocle') {
-      game.activeEffects.push({ type: 'revealNext2', duration: 2, floorsRemaining: 2 });
-    } else if (state.relic.id === 'tax_haven') {
-      game.activeEffects.push({ type: 'tax_immunity', duration: 5, floorsRemaining: 5 });
+    if (state.artifact && state.artifact.id) {
+      if (state.artifact.id === 'golden_aegis') {
+        game.activeEffects.push({ type: 'gameOverImmunity', duration: 3, floorsRemaining: 3 });
+      } else if (state.artifact.id === 'overdrive') {
+        game.activeEffects.push({ type: 'tripleNextFloor', duration: 1, floorsRemaining: 1 });
+      } else if (state.artifact.id === 'xray_monocle') {
+        game.activeEffects.push({ type: 'revealNext2', duration: 2, floorsRemaining: 2 });
+      } else if (state.artifact.id === 'tax_haven') {
+        game.activeEffects.push({ type: 'tax_immunity', duration: 5, floorsRemaining: 5 });
+      }
     }
   }
   game.season2MinigameState = null;
@@ -7411,28 +7413,28 @@ async function handleS2AuctionContinue(interaction, game) {
 // Season 2 Minigame: Bomb Defusal
 async function handleBombDefusal(interaction, game) {
   game.season2MinigameState = Season2Minigames.startBombDefusal(game.userId, game.username, game.totalMoney);
-  const embed = Season2Minigames.createBombDefusalEmbed(game.season2MinigameState);
-  const buttons = Season2Minigames.createBombDefusalButtons(game.season2MinigameState);
+  const embed = Season2Minigames.createBombEmbed(game.season2MinigameState);
+  const buttons = Season2Minigames.createBombButtons(game.season2MinigameState);
   await interaction.editReply({ embeds: [embed], components: buttons });
 }
 
-async function handleS2BombCut(interaction, game, wireIndex) {
+async function handleS2BombCut(interaction, game, wire) {
   if (!game || !game.season2MinigameState) return;
-  Season2Minigames.cutWire(game.season2MinigameState, wireIndex);
-  const embed = Season2Minigames.createBombDefusalEmbed(game.season2MinigameState);
-  const buttons = Season2Minigames.createBombDefusalButtons(game.season2MinigameState);
+  Season2Minigames.cutWire(game.season2MinigameState, wire);
+  const embed = Season2Minigames.createBombEmbed(game.season2MinigameState);
+  const buttons = Season2Minigames.createBombButtons(game.season2MinigameState);
   await interaction.update({ embeds: [embed], components: buttons });
 }
 
 async function handleS2BombContinue(interaction, game) {
   if (!game || !game.season2MinigameState) return;
   const state = game.season2MinigameState;
-  if (state.won) {
-    game.totalMoney += 2500000;
+  if (state.result === 'jackpot') {
+    game.totalMoney += (state.reward || 2500000);
     if (!game.activeEffects) game.activeEffects = [];
     game.activeEffects.push({ type: 'gameOverImmunity', duration: 3, floorsRemaining: 3 });
-  } else if (state.busted) {
-    game.totalMoney = 0;
+  } else if (state.result === 'detonated') {
+    game.totalMoney = Math.max(0, game.totalMoney - (state.penalty || 250000));
   }
   game.season2MinigameState = null;
   await continueGameAfterMinigame(interaction, game);
@@ -7448,7 +7450,13 @@ async function handleHighRollerBlackjack(interaction, game) {
 
 async function handleS2BlackjackAction(interaction, game, action) {
   if (!game || !game.season2MinigameState) return;
-  Season2Minigames.playBlackjackAction(game.season2MinigameState, action);
+  if (action === 'hit') {
+    Season2Minigames.playerHit(game.season2MinigameState);
+  } else if (action === 'double') {
+    Season2Minigames.playerDoubleDown(game.season2MinigameState);
+  } else if (action === 'stand') {
+    Season2Minigames.playerStand(game.season2MinigameState);
+  }
   const embed = Season2Minigames.createBlackjackEmbed(game.season2MinigameState);
   const buttons = Season2Minigames.createBlackjackButtons(game.season2MinigameState);
   await interaction.update({ embeds: [embed], components: buttons });
@@ -7457,10 +7465,8 @@ async function handleS2BlackjackAction(interaction, game, action) {
 async function handleS2BlackjackContinue(interaction, game) {
   if (!game || !game.season2MinigameState) return;
   const state = game.season2MinigameState;
-  if (state.won) {
-    game.totalMoney = game.totalMoney * 2; // +100% Cash!
-  } else if (state.busted || (!state.push && !state.won)) {
-    game.totalMoney = Math.floor(game.totalMoney * 0.65); // Lose 35%!
+  if (state.payout) {
+    game.totalMoney = Math.max(0, game.totalMoney + state.payout);
   }
   game.season2MinigameState = null;
   await continueGameAfterMinigame(interaction, game);

@@ -4425,15 +4425,17 @@ class GameUI {
     if (result.gameOver) {
       if (result.won) {
         title = '♾️ THE ∞% - JACKPOT!';
+        const bonusWon = result.moneyAdded !== undefined ? result.moneyAdded : Math.max(0, (result.accumulatedReward || 0) - (game.startMoney || 0));
         description = `**You reached the Infinity Percent!**\n\n` +
-          `**Total Won:** $${this.formatMoney(result.accumulatedReward)}\n` +
+          `**Bonus Won:** +$${this.formatMoney(bonusWon)}\n` +
           `**Total Money:** $${this.formatMoney(game.totalMoney)}`;
         color = '#FFD700';
       } else if (result.cashout) {
         title = '🛑 THE ∞% - CASHED OUT';
+        const bonusWon = result.moneyAdded !== undefined ? result.moneyAdded : Math.max(0, (result.accumulatedReward || 0) - (game.startMoney || 0));
         description = `You stopped safely!\n\n` +
           `**Final Multiplier:** +${result.accumulatedPercent}%\n` +
-          `**Total Won:** $${this.formatMoney(result.accumulatedReward)}\n` +
+          `**Bonus Won:** +$${this.formatMoney(bonusWon)}\n` +
           `**Total Money:** $${this.formatMoney(game.totalMoney)}`;
         color = '#00FF00';
       } else {

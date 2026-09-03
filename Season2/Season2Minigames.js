@@ -569,4 +569,18 @@ class Season2Minigames {
   }
 }
 
+// Method aliases for compatibility
+Season2Minigames.createLaserGridEmbed = Season2Minigames.createLaserEmbed;
+Season2Minigames.playLaserStep = Season2Minigames.stepLaserInfiltration;
+Season2Minigames.submitAuctionBid = Season2Minigames.placeAuctionBid;
+Season2Minigames.createBombDefusalEmbed = Season2Minigames.createBombEmbed;
+Season2Minigames.createBombDefusalButtons = Season2Minigames.createBombButtons;
+Season2Minigames.playBlackjackAction = function(state, action) {
+  if (action === 'hit') return Season2Minigames.playerHit(state);
+  if (action === 'double') return Season2Minigames.playerDoubleDown(state);
+  if (action === 'stand') return Season2Minigames.playerStand(state);
+  return state;
+};
+
 module.exports = Season2Minigames;
+

@@ -1,6 +1,7 @@
 const { MinigameMasterSession } = require('../Season2/MinigameMaster');
 const { GameState } = require('../gameManager');
 const GameUI = require('../gameUI');
+const Season2Minigames = require('../Season2/Season2Minigames');
 
 describe('Season 2 and Minigame Master Tests', () => {
   describe('GameState Season Modes', () => {
@@ -167,5 +168,62 @@ describe('Season 2 and Minigame Master Tests', () => {
       expect([10, 20, 30].includes(climbFloor)).toBe(true);
     });
   });
+
+  describe('Season 2 Minigames Integration', () => {
+    test('Laser Infiltration starts and handles step with embed and buttons', () => {
+      const state = Season2Minigames.startLaserInfiltration('u1', 'Player', 500000);
+      expect(state.currentRow).toBe(3);
+      const embed = Season2Minigames.createLaserEmbed(state);
+      expect(embed).toBeDefined();
+      const aliasEmbed = Season2Minigames.createLaserGridEmbed(state);
+      expect(aliasEmbed).toBeDefined();
+      const buttons = Season2Minigames.createLaserButtons(state);
+      expect(buttons.length).toBeGreaterThan(0);
+
+      Season2Minigames.stepLaserInfiltration(state, 0);
+      expect(state.pathHistory.length).toBe(1);
+    });
+
+    test('Blind Auction starts, places bid, and creates embed/buttons', () => {
+      const state = Season2Minigames.startBlindAuction('u1', 'Player', 500000);
+      expect(state.artifact).toBeDefined();
+      const embed = Season2Minigames.createAuctionEmbed(state);
+      expect(embed).toBeDefined();
+
+      Season2Minigames.placeAuctionBid(state, 100000);
+      expect(state.isCompleted).toBe(true);
+      const resultButtons = Season2Minigames.createAuctionButtons(state);
+      expect(resultButtons.length).toBeGreaterThan(0);
+    });
+
+    test('Bomb Defusal starts, cuts wire, and creates embed/buttons', () => {
+      const state = Season2Minigames.startBombDefusal('u1', 'Player', 500000);
+      expect(state.defusalWire).toBeDefined();
+      const embed = Season2Minigames.createBombEmbed(state);
+      expect(embed).toBeDefined();
+      const aliasEmbed = Season2Minigames.createBombDefusalEmbed(state);
+      expect(aliasEmbed).toBeDefined();
+
+      Season2Minigames.cutWire(state, 'Red');
+      expect(state.isCompleted).toBe(true);
+      const resultButtons = Season2Minigames.createBombButtons(state);
+      expect(resultButtons.length).toBeGreaterThan(0);
+    });
+
+    test('High Roller Blackjack starts, hits/stands, and creates embed/buttons', () => {
+      const state = Season2Minigames.startBlackjack('u1', 'Player', 500000);
+      expect(state.playerHand.length).toBe(2);
+      const embed = Season2Minigames.createBlackjackEmbed(state);
+      expect(embed).toBeDefined();
+      const buttons = Season2Minigames.createBlackjackButtons(state);
+      expect(buttons.length).toBeGreaterThan(0);
+
+      Season2Minigames.playerStand(state);
+      expect(state.isCompleted).toBe(true);
+      const resultButtons = Season2Minigames.createBlackjackButtons(state);
+      expect(resultButtons[0].components[0].data.custom_id).toBe('s2_blackjack_continue');
+    });
+  });
 });
+
 
