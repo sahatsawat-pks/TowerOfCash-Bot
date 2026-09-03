@@ -1,0 +1,13 @@
+[2025-12-16T18:00:28.527Z] 195925550135640064 (kanzakiaito) earned "Successful Heist" (MART_ROBBER) - Successfully rob Mart-Of-Cash
+[2025-12-16T18:13:51.532Z] 195925550135640064 (kanzakiaito) earned "Unlucky Pick" (SKULL_PICKER) - Pick the Skull space in Mart-Of-Cash robbery
+[2025-12-16T18:13:51.963Z] 195925550135640064 (kanzakiaito) earned "Caught Red-Handed" (MART_BUSTED) - Get busted while robbing Mart-Of-Cash
+[2025-12-16T18:14:05.442Z] 195925550135640064 (kanzakiaito) earned "Basement Survivor" (BASEMENT_ESCAPE) - Win the Basement minigame negotiation
+[2025-12-16T19:11:38.587Z] 195925550135640064 (kanzakiaito) earned "Money Bag Snatcher" (MONEY_BAG_ROBBERY) - Pick Money Bag (💰) space in Mart-Of-Cash robbery | Data: {}
+[2025-12-17T01:39:23.593Z] 195925550135640064 (kanzakiaito) earned "One and Done" (GO_BIG_ONE_AND_DONE) - Hit bomb on 2nd pick in Money Hunt mode | Data: {"winnings":100000}
+[2025-12-17T01:52:19.898Z] 195925550135640064 (kanzakiaito) earned "Cursed Box" (MYSTERY_BOX_CURSE) - Lose over 50% of money from a Mystery Box item | Data: {"moneyBefore":19873281,"moneyAfter":0,"moneyLost":19873281,"floorsCompleted":11}
+[2025-12-18T11:56:57.603Z] 195925550135640064 (kanzakiaito) earned "Skull Seeker Champion" (MOUNT_CASHMORE_SKULL_SEEKER) - Win Skull Seeker jackpot in Mount Ca$hmore
+[2025-12-18T13:07:40.620Z] 195925550135640064 (kanzakiaito) earned "Summit Conqueror" (MOUNT_CASHMORE_SUMMIT) - Reach the summit of Mount Ca$hmore (Level 9)
+[2025-12-18T13:07:41.144Z] 195925550135640064 (kanzakiaito) earned "Jackpot Winner" (MOUNT_CASHMORE_JACKPOT) - Win the jackpot at Mount Ca$hmore summit
+[2025-12-18T13:07:41.669Z] 195925550135640064 (kanzakiaito) earned "Big Bank Climber" (MOUNT_CASHMORE_BIG_BANK) - Complete Mount Ca$hmore in Big Bank mode
+[2025-12-18T13:27:57.829Z] 195925550135640064 (kanzakiaito) earned "Lucky Climber" (MOUNT_CASHMORE_LUCKY) - Reach Level 7 without losing a life
+[2025-12-31T16:02:37.573Z] 195925550135640064 (kanzakiaito) earned "Completely Broke" (BROKE_PLAYER) - End a game with exactly $0 | Data: {"reason":"tower_of_crash"}

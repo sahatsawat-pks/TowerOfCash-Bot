@@ -1,4 +1,4 @@
-const GameManager = require('../../gameManager');
+const { GameManager } = require('../../gameManager');
 const mockDb = require('../utils/database.mock');
 
 describe('Operator Roshambo Minigame', () => {

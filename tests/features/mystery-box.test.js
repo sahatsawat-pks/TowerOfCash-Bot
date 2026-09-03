@@ -1,4 +1,4 @@
-const GameManager = require('../../gameManager');
+const { GameManager } = require('../../gameManager');
 const mockDb = require('../utils/database.mock');
 
 describe('Mystery Box Feature', () => {
@@ -18,13 +18,13 @@ describe('Mystery Box Feature', () => {
         expect(pool.neutral).toBeDefined();
         expect(pool.money).toBeDefined();
 
-        // Check for new items
+        // Check for money items
         const moneyItems = pool.money.map(i => i.id);
-        expect(moneyItems).toContain('panty_pant');
-        expect(moneyItems).toContain('gold_coin');
-        expect(moneyItems).toContain('lottery_ticket');
-        expect(moneyItems).toContain('ipad_pro');
-        expect(moneyItems).toContain('million_cheque');
+        expect(moneyItems).toContain('pennies');
+        expect(moneyItems).toContain('gold_bar');
+        expect(moneyItems).toContain('diamond_cache');
+        expect(moneyItems).toContain('lucky_lottery');
+        expect(moneyItems).toContain('salt');
     });
 
     test('startMysteryBox should generate 4 boxes from different categories', () => {
@@ -37,7 +37,7 @@ describe('Mystery Box Feature', () => {
         state.boxes.forEach(box => {
             expect(box.id).toBeDefined();
             expect(box.category).toBeDefined();
-            expect(['good', 'bad', 'neutral', 'money']).toContain(box.category);
+            expect(['good', 'bad', 'neutral', 'money', 'minigames']).toContain(box.category);
         });
     });
 

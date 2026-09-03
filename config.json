@@ -142,11 +142,6 @@
     },
     {
       "type": "special",
-      "action": "add_zero",
-      "label": "Add a 0"
-    },
-    {
-      "type": "special",
       "action": "add_one",
       "label": "Add a 1"
     },
@@ -156,120 +151,47 @@
       "label": "X Level"
     },
     {
-      "type": "nothing",
-      "label": "Nothing"
-    },
-    {
-      "type": "nothing",
-      "label": "Nothing"
-    },
-    {
-      "type": "nothing",
-      "label": "Nothing"
-    },
-    {
-      "type": "nothing",
-      "label": "Nothing"
-    },
-    {
-      "type": "nothing",
-      "label": "Nothing"
-    },
-    {
-      "type": "nothing",
-      "label": "Nothing"
-    },
-    {
-      "type": "nothing",
-      "label": "Nothing"
-    },
-    {
-      "type": "nothing",
-      "label": "Nothing"
-    },
-    {
-      "type": "nothing",
-      "label": "Nothing"
-    },
-    {
-      "type": "nothing",
-      "label": "Nothing"
-    },
-    {
-      "type": "nothing",
-      "label": "Nothing"
-    },
-    {
-      "type": "nothing",
-      "label": "Nothing"
-    },
-    {
-      "type": "nothing",
-      "label": "Nothing"
-    },
-    {
-      "type": "nothing",
-      "label": "Nothing"
+      "type": "special",
+      "action": "add_zero",
+      "label": "Add a 0"
     },
     {
       "type": "game_over",
       "label": "Game Over"
     },
     {
-      "type": "random",
-      "min": 0,
-      "max": 99999999,
-      "label": "Random 5"
+      "type": "nothing",
+      "label": "Nothing"
+    },
+    {
+      "type": "nothing",
+      "label": "Nothing"
+    },
+    {
+      "type": "nothing",
+      "label": "Nothing"
+    },
+    {
+      "type": "nothing",
+      "label": "Nothing"
     },
     {
       "type": "special",
-      "action": "boost_multiplier",
-      "min": 0,
-      "max": 300,
-      "label": "Boost Multiplier"
-    },
-    {
-      "type": "event",
-      "action": "mega_grid",
-      "label": "Mega Grid"
-    },
-    {
-      "type": "event",
-      "action": "infinity_percent",
-      "label": "The ∞%"
-    },
-    {
-      "type": "event",
-      "action": "hideout_breakthrough",
-      "label": "Hideout Breakthrough"
-    },
-    {
-      "type": "event",
-      "action": "babushka",
-      "label": "Babushka"
-    },
-    {
-      "type": "event",
-      "action": "boiling_point",
-      "label": "Boiling Point"
-    },
-    {
-      "type": "event",
-      "action": "operator_roshambo",
-      "label": "Operator Roshambo"
-    },
-    {
-      "type": "event",
-      "action": "mystery_box",
-      "label": "Mystery Box"
+      "action": "mart_of_cash",
+      "label": "Mart-Of-Ca$h"
     },
     {
       "type": "special",
-      "action": "random_percentage",
-      "label": "Random ±%"
+      "action": "remove_zeros",
+      "label": "Remove 0's"
+    },
+    {
+      "type": "special",
+      "action": "blast_digit",
+      "label": "Blast Digit"
     }
   ],
-  "maxPlaysPerDay": 2,
+  "maxPlaysPerDay": 5,
   "roundFloors": [
     7,
     6,
@@ -277,6 +199,8 @@
     4,
     3,
     2,
+    2,
     1
-  ]
+  ],
+  "bigBankChannelId": "1321454049581826139"
 }

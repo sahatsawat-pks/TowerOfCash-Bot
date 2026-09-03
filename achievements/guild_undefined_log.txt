@@ -1,0 +1,3 @@
+[2025-12-18T13:37:50.565Z] 195925550135640064 (1242123657468317707) earned "Summit Conqueror" (MOUNT_CASHMORE_SUMMIT) - Reach the summit of Mount Ca$hmore (Level 9)
+[2025-12-18T13:37:50.970Z] 195925550135640064 (1242123657468317707) earned "Jackpot Winner" (MOUNT_CASHMORE_JACKPOT) - Win the jackpot at Mount Ca$hmore summit
+[2025-12-18T13:37:51.408Z] 195925550135640064 (1242123657468317707) earned "Lucky Climber" (MOUNT_CASHMORE_LUCKY) - Reach Level 7 without losing a life

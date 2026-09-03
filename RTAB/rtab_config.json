@@ -1,0 +1,1303 @@
+{
+    "gameSettings": {
+        "gridSize": 5,
+        "minPlayers": 2,
+        "maxPlayers": 4,
+        "turnTimeLimit": 60000,
+        "lobbyTimeout": 120000
+    },
+    "bombTypes": {
+        "normal": {
+            "id": "bomb_normal",
+            "name": "BOMB",
+            "nameEn": "Normal Bomb",
+            "emoji": "💣",
+            "weight": 26,
+            "effects": {
+                "losesGame": true,
+                "moneyLost": "all",
+                "itemsLost": true,
+                "multiplierReset": true,
+                "statsPenalty": 50000
+            }
+        },
+        "bankrupt": {
+            "id": "bomb_bankrupt",
+            "name": "BANKRUPT BOMB",
+            "nameEn": "Bankrupt Bomb",
+            "emoji": "💰",
+            "weight": 3,
+            "effects": {
+                "losesGame": true,
+                "moneyLost": "all",
+                "itemsLost": true,
+                "multiplierReset": true,
+                "bankrupt": true,
+                "statsPenalty": 50000
+            }
+        },
+        "cluster": {
+            "id": "bomb_cluster",
+            "name": "CLUSTER BOMB",
+            "nameEn": "Cluster Bomb",
+            "emoji": "💥",
+            "weight": 3,
+            "effects": {
+                "losesGame": true,
+                "moneyLost": "all",
+                "itemsLost": true,
+                "multiplierReset": true,
+                "placesMoreBombs": true,
+                "bombsToPlace": 3,
+                "statsPenalty": 50000
+            }
+        },
+        "collateral": {
+            "id": "bomb_collateral",
+            "name": "COLLATERAL DAMAGE BOMB",
+            "nameEn": "Collateral Damage Bomb",
+            "emoji": "🤝",
+            "weight": 3,
+            "effects": {
+                "losesGame": true,
+                "moneyLost": "all",
+                "itemsLost": true,
+                "multiplierReset": true,
+                "damagesAllPlayers": true,
+                "statsPenalty": 50000
+            }
+        },
+        "loothold": {
+            "id": "bomb_loothold",
+            "name": "LOOT HOLD BOMB",
+            "nameEn": "Loot Hold Bomb",
+            "emoji": "🔒",
+            "weight": 3,
+            "effects": {
+                "losesGame": true,
+                "moneyLost": "none",
+                "itemsLost": true,
+                "multiplierReset": true,
+                "statsPenalty": 50000
+            }
+        },
+        "reverse": {
+            "id": "bomb_reverse",
+            "name": "REVERSE BOMB",
+            "nameEn": "Reverse Bomb",
+            "emoji": "🔄",
+            "weight": 3,
+            "effects": {
+                "losesGame": false,
+                "placerLoses": true,
+                "moneyLost": "all",
+                "itemsLost": true,
+                "multiplierReset": true,
+                "statsPenalty": 50000
+            }
+        },
+        "boostblast": {
+            "id": "bomb_boostblast",
+            "name": "BOOST BLAST BOMB",
+            "nameEn": "Boost Blast Bomb",
+            "emoji": "🚀",
+            "weight": 3,
+            "effects": {
+                "losesGame": true,
+                "moneyLost": "all",
+                "itemsLost": true,
+                "multiplierReset": true,
+                "boostReset": true,
+                "statsPenalty": 50000
+            }
+        },
+        "streakblast": {
+            "id": "bomb_streakblast",
+            "name": "STREAK BLAST BOMB",
+            "nameEn": "Streak Blast Bomb",
+            "emoji": "📊",
+            "weight": 3,
+            "effects": {
+                "losesGame": true,
+                "moneyLost": "all",
+                "itemsLost": true,
+                "multiplierReset": true,
+                "streakReset": true,
+                "statsPenalty": 50000
+            }
+        },
+        "loserwheel": {
+            "id": "bomb_loserwheel",
+            "name": "LOSER WHEEL BOMB",
+            "nameEn": "Loser Wheel Bomb",
+            "emoji": "☠️",
+            "weight": 1,
+            "effects": {
+                "losesGame": true,
+                "forcesLoserWheel": true,
+                "moneyLost": "variable",
+                "itemsLost": true,
+                "multiplierReset": true,
+                "statsPenalty": 50000
+            }
+        },
+        "dud": {
+            "id": "bomb_dud",
+            "name": "BOMB",
+            "nameEn": "Dud Bomb",
+            "emoji": "🎭",
+            "weight": 1,
+            "excludeIn2P": true,
+            "effects": {
+                "losesGame": false,
+                "moneyLost": "none",
+                "itemsLost": false,
+                "multiplierReset": false,
+                "statsPenalty": 0,
+                "isDud": true
+            }
+        },
+        "thresholddud": {
+            "id": "bomb_thresholddud",
+            "name": "BOMB",
+            "nameEn": "Threshold Dud Bomb",
+            "emoji": "🎯",
+            "weight": 1,
+            "excludeIn2P": true,
+            "effects": {
+                "losesGame": false,
+                "moneyLost": "none",
+                "itemsLost": false,
+                "multiplierReset": false,
+                "statsPenalty": 0,
+                "isDud": true,
+                "givesThreshold": true
+            }
+        },
+        "cursed": {
+            "id": "bomb_cursed",
+            "name": "CURSED BOMB",
+            "nameEn": "Cursed Bomb",
+            "emoji": "😈",
+            "weight": 0,
+            "generatedBy": "bowser_event",
+            "effects": {
+                "losesGame": true,
+                "moneyLost": "all",
+                "itemsLost": true,
+                "multiplierReset": true,
+                "extraPenalty": true,
+                "statsPenalty": 100000
+            }
+        },
+        "lockdown": {
+            "id": "bomb_lockdown",
+            "name": "LOCKDOWN BOMB",
+            "nameEn": "Lockdown Bomb",
+            "emoji": "🔐",
+            "weight": 0,
+            "generatedBy": "lockdown_event",
+            "effects": {
+                "losesGame": false,
+                "skipTurns": 2,
+                "moneyLost": "none",
+                "itemsLost": false,
+                "multiplierReset": false,
+                "statsPenalty": 0
+            }
+        }
+    },
+    "hiddenCommands": {
+        "fold": {
+            "id": "cmd_fold",
+            "name": "FOLD",
+            "nameEn": "Fold",
+            "command": "!fold",
+            "emoji": "🛡️",
+            "weight": 11,
+            "description": "Drop out safely, keep multipliers and minigames",
+            "effect": "dropOut",
+            "keepItems": true
+        },
+        "blammo": {
+            "id": "cmd_blammo",
+            "name": "BLAMMO SUMMONER",
+            "nameEn": "Blammo Summoner",
+            "command": "!blammo",
+            "emoji": "☠️",
+            "weight": 11,
+            "description": "Give next player a BLAMMO",
+            "effect": "summonBlammo",
+            "targetNext": true
+        },
+        "shuffler": {
+            "id": "cmd_shuffler",
+            "name": "SHUFFLER",
+            "nameEn": "Shuffler",
+            "command": "!shuffle <space>",
+            "emoji": "🔀",
+            "weight": 11,
+            "description": "Replace space contents with new generation",
+            "effect": "shuffleSpace",
+            "requiresTarget": true
+        },
+        "wagerer": {
+            "id": "cmd_wagerer",
+            "name": "WAGERER",
+            "nameEn": "Wagerer",
+            "command": "!wager",
+            "emoji": "💰",
+            "weight": 11,
+            "description": "Force players to add to prize pool",
+            "effect": "forceWager",
+            "affectsAll": true
+        },
+        "bonusbag": {
+            "id": "cmd_bonusbag",
+            "name": "BONUS BAG",
+            "nameEn": "Bonus Bag",
+            "command": "!bonus <type>",
+            "emoji": "🎁",
+            "weight": 11,
+            "description": "Skip turn, draw from bag (cash/boost/game/event)",
+            "effect": "bonusDraw",
+            "requiresType": true
+        },
+        "eyeoftruth": {
+            "id": "cmd_eyeoftruth",
+            "name": "EYE OF TRUTH",
+            "nameEn": "Eye of Truth",
+            "command": "!truth <space>",
+            "emoji": "👁️",
+            "weight": 11,
+            "description": "See exact contents of a space",
+            "effect": "revealExact",
+            "requiresTarget": true
+        },
+        "failsafe": {
+            "id": "cmd_failsafe",
+            "name": "FAILSAFE",
+            "nameEn": "Failsafe",
+            "command": "!failsafe",
+            "emoji": "❌",
+            "weight": 11,
+            "description": "Win if all spaces are bombs, -$1M penalty if wrong",
+            "effect": "failsafe",
+            "penalty": 1000000
+        },
+        "minesweeper": {
+            "id": "cmd_minesweeper",
+            "name": "MINESWEEPER",
+            "nameEn": "Minesweeper",
+            "command": "!minesweeper <space>",
+            "emoji": "💣",
+            "weight": 11,
+            "description": "Count bombs in 8 adjacent spaces",
+            "effect": "countBombs",
+            "requiresTarget": true
+        },
+        "repellent": {
+            "id": "cmd_repellent",
+            "name": "BLAMMO REPELLENT",
+            "nameEn": "Blammo Repellent",
+            "command": "!repel",
+            "emoji": "🛡️",
+            "weight": 11,
+            "description": "Block BLAMMO or cure threshold",
+            "effect": "repelBlammo",
+            "blocksBlammo": true
+        },
+        "wildcard": {
+            "id": "cmd_wildcard",
+            "name": "WILDCARD",
+            "nameEn": "Wildcard",
+            "command": "<any command>",
+            "emoji": "🌟",
+            "weight": 1,
+            "description": "Ultra rare - can be used as ANY other command!",
+            "effect": "wildcard",
+            "ultraRare": true
+        }
+    },
+    "contentPool": {
+        "prizes": [
+            {
+                "id": "prize_0",
+                "name": "0 บาท",
+                "nameEn": "0 Baht",
+                "amount": 0,
+                "weight": 1,
+                "rarity": "common"
+            },
+            {
+                "id": "prize_1",
+                "name": "1 บาท",
+                "nameEn": "1 Baht",
+                "amount": 1,
+                "weight": 2,
+                "rarity": "common"
+            },
+            {
+                "id": "prize_2",
+                "name": "2 บาท",
+                "nameEn": "2 Baht",
+                "amount": 2,
+                "weight": 2,
+                "rarity": "common"
+            },
+            {
+                "id": "prize_5",
+                "name": "5 บาท",
+                "nameEn": "5 Baht",
+                "amount": 5,
+                "weight": 2,
+                "rarity": "common"
+            },
+            {
+                "id": "prize_10",
+                "name": "10 บาท",
+                "nameEn": "10 Baht",
+                "amount": 10,
+                "weight": 3,
+                "rarity": "common"
+            },
+            {
+                "id": "prize_20",
+                "name": "20 บาท",
+                "nameEn": "20 Baht",
+                "amount": 20,
+                "weight": 3,
+                "rarity": "common"
+            },
+            {
+                "id": "prize_50",
+                "name": "50 บาท",
+                "nameEn": "50 Baht",
+                "amount": 50,
+                "weight": 3,
+                "rarity": "common"
+            },
+            {
+                "id": "prize_100",
+                "name": "100 บาท",
+                "nameEn": "100 Baht",
+                "amount": 100,
+                "weight": 5,
+                "rarity": "common"
+            },
+            {
+                "id": "prize_500",
+                "name": "500 บาท",
+                "nameEn": "500 Baht",
+                "amount": 500,
+                "weight": 5,
+                "rarity": "common"
+            },
+            {
+                "id": "prize_1000",
+                "name": "1,000 บาท",
+                "nameEn": "1,000 Baht",
+                "amount": 1000,
+                "weight": 8,
+                "rarity": "common"
+            },
+            {
+                "id": "prize_10000",
+                "name": "10,000 บาท",
+                "nameEn": "10,000 Baht",
+                "amount": 10000,
+                "weight": 10,
+                "rarity": "common"
+            },
+            {
+                "id": "prize_50000",
+                "name": "50,000 บาท",
+                "nameEn": "50,000 Baht",
+                "amount": 50000,
+                "weight": 8,
+                "rarity": "common"
+            },
+            {
+                "id": "prize_100000",
+                "name": "100,000 บาท",
+                "nameEn": "100,000 Baht",
+                "amount": 100000,
+                "weight": 7,
+                "rarity": "common"
+            },
+            {
+                "id": "prize_500000",
+                "name": "500,000 บาท",
+                "nameEn": "500,000 Baht",
+                "amount": 500000,
+                "weight": 5,
+                "rarity": "common"
+            },
+            {
+                "id": "prize_1000000",
+                "name": "1,000,000 บาท",
+                "nameEn": "1,000,000 Baht",
+                "amount": 1000000,
+                "weight": 4,
+                "rarity": "common"
+            },
+            {
+                "id": "prize_10000000",
+                "name": "10,000,000 บาท",
+                "nameEn": "10,000,000 Baht",
+                "amount": 10000000,
+                "weight": 2,
+                "rarity": "common"
+            },
+            {
+                "id": "prize_25000000",
+                "name": "25,000,000 บาท",
+                "nameEn": "25,000,000 Baht",
+                "amount": 25000000,
+                "weight": 1,
+                "rarity": "rare"
+            },
+            {
+                "id": "prize_50000000",
+                "name": "50,000,000 บาท",
+                "nameEn": "50,000,000 Baht",
+                "amount": 50000000,
+                "weight": 0.5,
+                "rarity": "epic"
+            },
+            {
+                "id": "prize_100000000",
+                "name": "100,000,000 บาท",
+                "nameEn": "100,000,000 Baht",
+                "amount": 100000000,
+                "weight": 0.25,
+                "rarity": "legendary"
+            }
+        ],
+        "multipliers": [
+            {
+                "id": "mult_double",
+                "name": "คูณสอง",
+                "nameEn": "Double Money",
+                "emoji": "✖️2️⃣",
+                "effect": "multiply",
+                "value": 2,
+                "weight": 5,
+                "rarity": "common"
+            },
+            {
+                "id": "mult_half",
+                "name": "หารสอง",
+                "nameEn": "Half Money",
+                "emoji": "➗2️⃣",
+                "effect": "divide",
+                "value": 2,
+                "weight": 3,
+                "rarity": "common"
+            },
+            {
+                "id": "mult_x2_all",
+                "name": "คูณ 2 ทุกอย่าง",
+                "nameEn": "x2 Everything (3 turns)",
+                "emoji": "🔥",
+                "effect": "boost_3turns",
+                "value": 2,
+                "weight": 4,
+                "rarity": "common",
+                "duration": 3
+            },
+            {
+                "id": "mult_x3_all",
+                "name": "คูณ 3 ทุกอย่าง",
+                "nameEn": "x3 Everything (3 turns)",
+                "emoji": "🔥🔥",
+                "effect": "boost_3turns",
+                "value": 3,
+                "weight": 2,
+                "rarity": "common",
+                "duration": 3
+            },
+            {
+                "id": "mult_x10_all",
+                "name": "คูณ 10 ทุกอย่าง",
+                "nameEn": "x10 Everything (3 turns)",
+                "emoji": "🔥🔥🔥",
+                "effect": "boost_3turns",
+                "value": 10,
+                "weight": 0.5,
+                "rarity": "epic",
+                "duration": 3
+            }
+        ],
+        "events": [
+            {
+                "id": "boost_charger",
+                "name": "Boost Charger",
+                "nameEn": "Boost Charger",
+                "emoji": "⚡",
+                "effect": "boost_charger",
+                "weight": 7,
+                "rarity": "common",
+                "boost": 50,
+                "duration": 3
+            },
+            {
+                "id": "double_deal",
+                "name": "Double Deal",
+                "nameEn": "Double Deal",
+                "emoji": "🎴",
+                "effect": "double_deal",
+                "weight": 7,
+                "rarity": "common",
+                "choices": 2
+            },
+            {
+                "id": "streak_bonus",
+                "name": "Streak Bonus",
+                "nameEn": "Streak Bonus",
+                "emoji": "📊",
+                "effect": "streak_bonus",
+                "weight": 7,
+                "rarity": "common",
+                "rewardPerStreak": 100000
+            },
+            {
+                "id": "draw_two",
+                "name": "Draw Two",
+                "nameEn": "Draw Two",
+                "emoji": "🎴",
+                "effect": "draw_cards",
+                "weight": 6,
+                "rarity": "common",
+                "cardCount": 2
+            },
+            {
+                "id": "rtab_market",
+                "name": "RtaB Market",
+                "nameEn": "RtaB Market",
+                "emoji": "🏪",
+                "effect": "market",
+                "weight": 6,
+                "rarity": "common"
+            },
+            {
+                "id": "quad_damage",
+                "name": "Quad Damage",
+                "nameEn": "Quad Damage",
+                "emoji": "💥",
+                "effect": "one_shot_booster",
+                "weight": 6,
+                "rarity": "common",
+                "multiplier": 4
+            },
+            {
+                "id": "bowser_event",
+                "name": "Bowser",
+                "nameEn": "Bowser",
+                "emoji": "🐢",
+                "effect": "bowser",
+                "weight": 5,
+                "rarity": "uncommon"
+            },
+            {
+                "id": "peek_replenish",
+                "name": "Peek Replenish",
+                "nameEn": "Peek Replenish",
+                "emoji": "👁️",
+                "effect": "peek_replenish",
+                "weight": 5,
+                "rarity": "uncommon",
+                "peeksGranted": 3
+            },
+            {
+                "id": "something_for_all",
+                "name": "Something For Everyone",
+                "nameEn": "Something For Everyone",
+                "emoji": "🎁",
+                "effect": "something_for_all",
+                "weight": 5,
+                "rarity": "uncommon"
+            },
+            {
+                "id": "spoiler_tag",
+                "name": "Spoiler Tag",
+                "nameEn": "Hidden Commands For All",
+                "emoji": "🏷️",
+                "effect": "hidden_commands_for_all",
+                "weight": 4,
+                "rarity": "uncommon",
+                "weightReduction": "largeGames"
+            },
+            {
+                "id": "joker",
+                "name": "Joker",
+                "nameEn": "Joker",
+                "emoji": "🃏",
+                "effect": "joker",
+                "weight": 4,
+                "rarity": "uncommon",
+                "excludeIn2P": true
+            },
+            {
+                "id": "one_buck_behind",
+                "name": "One Buck Behind",
+                "nameEn": "One Buck Behind",
+                "emoji": "💵",
+                "effect": "one_buck_behind",
+                "weight": 4,
+                "rarity": "uncommon",
+                "amountStolen": 1
+            },
+            {
+                "id": "split_share",
+                "name": "Split and Share",
+                "nameEn": "Split and Share",
+                "emoji": "🤝",
+                "effect": "split_share",
+                "weight": 3,
+                "rarity": "rare",
+                "splitPercent": 50
+            },
+            {
+                "id": "boost_magnet",
+                "name": "Boost Magnet",
+                "nameEn": "Boost Magnet",
+                "emoji": "🧲",
+                "effect": "boost_magnet",
+                "weight": 3,
+                "rarity": "rare"
+            },
+            {
+                "id": "draw_four",
+                "name": "Draw Four",
+                "nameEn": "Draw Four",
+                "emoji": "🎴",
+                "effect": "draw_cards",
+                "weight": 3,
+                "rarity": "rare",
+                "cardCount": 4,
+                "weightReduction": "smallGames"
+            },
+            {
+                "id": "minefield",
+                "name": "Minefield",
+                "nameEn": "Minefield",
+                "emoji": "💣",
+                "effect": "minefield",
+                "weight": 2,
+                "rarity": "rare",
+                "bombsPlaced": 3
+            },
+            {
+                "id": "lockdown",
+                "name": "Lockdown",
+                "nameEn": "Lockdown",
+                "emoji": "🔒",
+                "effect": "lockdown",
+                "weight": 2,
+                "rarity": "rare",
+                "lockdownBombs": 2
+            },
+            {
+                "id": "end_round",
+                "name": "Final Countdown",
+                "nameEn": "End Round",
+                "emoji": "⏰",
+                "effect": "final_countdown",
+                "weight": 2,
+                "rarity": "rare",
+                "turnsUntilEnd": 3
+            },
+            {
+                "id": "super_joker",
+                "name": "Super Joker",
+                "nameEn": "Super Joker",
+                "emoji": "🌟",
+                "effect": "super_joker",
+                "weight": 1,
+                "rarity": "epic",
+                "minPlayers": 4
+            },
+            {
+                "id": "starman",
+                "name": "Starman",
+                "nameEn": "Starman",
+                "emoji": "⭐",
+                "effect": "starman",
+                "weight": 1,
+                "rarity": "epic",
+                "invincibilityTurns": 3
+            },
+            {
+                "id": "jackpot",
+                "name": "Jackpot",
+                "nameEn": "Jackpot",
+                "emoji": "🎰",
+                "effect": "jackpot",
+                "weight": 1,
+                "rarity": "epic",
+                "minReward": 10000000,
+                "maxReward": 100000000
+            },
+            {
+                "id": "lucky_space",
+                "name": "Lucky Space",
+                "nameEn": "Lucky Space",
+                "emoji": "🍀",
+                "effect": "lucky_space",
+                "weight": 0,
+                "rarity": "seasonal",
+                "seasonal": true
+            },
+            {
+                "id": "times_ten",
+                "name": "Times Ten",
+                "nameEn": "Times Ten",
+                "emoji": "✖️10️⃣",
+                "effect": "one_shot_booster",
+                "weight": 0,
+                "rarity": "seasonal",
+                "multiplier": 10,
+                "seasonal": true
+            },
+            {
+                "id": "revival_chance",
+                "name": "Revival Chance",
+                "nameEn": "Revival Chance",
+                "emoji": "💫",
+                "effect": "revival_chance",
+                "weight": 0,
+                "rarity": "seasonal",
+                "seasonal": true
+            },
+            {
+                "id": "reverse",
+                "name": "Reverse",
+                "nameEn": "Reverse",
+                "emoji": "🔄",
+                "effect": "reverse_order",
+                "weight": 0,
+                "rarity": "seasonal",
+                "seasonal": true
+            },
+            {
+                "id": "cursed_bomb_event",
+                "name": "Cursed Bomb",
+                "nameEn": "Cursed Bomb Event",
+                "emoji": "😈",
+                "effect": "cursed_bomb_event",
+                "weight": 0,
+                "rarity": "seasonal",
+                "seasonal": true
+            },
+            {
+                "id": "cash_for_all",
+                "name": "Cash For All",
+                "nameEn": "Cash For All",
+                "emoji": "💰",
+                "effect": "cash_for_all",
+                "weight": 0,
+                "rarity": "seasonal",
+                "seasonal": true
+            },
+            {
+                "id": "minigames_for_all",
+                "name": "Minigames For All",
+                "nameEn": "Minigames For All",
+                "emoji": "🎮",
+                "effect": "minigames_for_all",
+                "weight": 0,
+                "rarity": "seasonal",
+                "seasonal": true
+            }
+        ],
+        "minigames": [
+            {
+                "id": "mg_coinflip",
+                "name": "Coin Flip",
+                "nameEn": "Coin Flip",
+                "emoji": "🪙",
+                "type": "luck",
+                "description": "Flip a coin - heads or tails!",
+                "winReward": 50000,
+                "weight": 8,
+                "rarity": "common"
+            },
+            {
+                "id": "mg_punchabunch",
+                "name": "Punch a Bunch",
+                "nameEn": "Punch a Bunch", 
+                "emoji": "👊",
+                "type": "luck",
+                "description": "Pick 4 spaces from 50! Avoid 5 bombs, collect up to $5M!",
+                "winReward": 500000,
+                "weight": 6,
+                "rarity": "common"
+            },
+            {
+                "id": "mg_bombroulette",
+                "name": "Bomb Roulette",
+                "nameEn": "Bomb Roulette",
+                "emoji": "🎡",
+                "type": "luck",
+                "description": "Spin 24-space wheel! Cash, Double, Triple, Halve - but spaces become bombs!",
+                "winReward": 750000,
+                "weight": 5,
+                "rarity": "common"
+            },
+            {
+                "id": "mg_upanddown",
+                "name": "Up and Down",
+                "nameEn": "Up and Down",
+                "emoji": "📈",
+                "type": "luck",
+                "description": "Pick cards 1-10, try to make a straight! Each miss adds $50k",
+                "winReward": 1000000,
+                "weight": 5,
+                "rarity": "common"
+            },
+            {
+                "id": "mg_safecracker",
+                "name": "Safe Cracker",
+                "nameEn": "Safe Cracker",
+                "emoji": "🔓",
+                "type": "luck",
+                "description": "Find 3-digit combo! Wrong digits become bombs. Max prize $10M!",
+                "winReward": 2000000,
+                "weight": 4,
+                "rarity": "uncommon"
+            },
+            {
+                "id": "mg_doublezeroes",
+                "name": "Double Zeroes",
+                "nameEn": "Double Zeroes",
+                "emoji": "⚫",
+                "type": "luck",
+                "description": "Build 4-digit number then risk it all for double zeros!",
+                "winReward": 1500000,
+                "weight": 4,
+                "rarity": "uncommon"
+            },
+            {
+                "id": "mg_racedeal",
+                "name": "Race Deal",
+                "nameEn": "Race Deal",
+                "emoji": "🏎️",
+                "type": "luck",
+                "description": "Race against the house! Pick 5 cards, beat their total!",
+                "winReward": 2500000,
+                "weight": 3,
+                "rarity": "uncommon"
+            },
+            {
+                "id": "mg_bumpergrab",
+                "name": "Bumper Grab",
+                "nameEn": "Bumper Grab",
+                "emoji": "🎯",
+                "type": "luck",
+                "description": "5 bumpers hide $100k-$10M or bombs! Pick carefully!",
+                "winReward": 3000000,
+                "weight": 3,
+                "rarity": "uncommon"
+            },
+            {
+                "id": "mg_mathtime",
+                "name": "Math Time",
+                "nameEn": "Math Time",
+                "emoji": "➕",
+                "type": "skill",
+                "description": "Add 5 numbers to reach target! Closer = more money!",
+                "winReward": 1000000,
+                "weight": 4,
+                "rarity": "uncommon"
+            },
+            {
+                "id": "mg_callyourshot",
+                "name": "Call Your Shot",
+                "nameEn": "Call Your Shot",
+                "emoji": "🎱",
+                "type": "skill",
+                "description": "Predict outcomes! 10 predictions = $10M jackpot!",
+                "winReward": 5000000,
+                "weight": 2,
+                "rarity": "rare"
+            },
+            {
+                "id": "mg_tictacbomb",
+                "name": "Tic Tac Bomb",
+                "nameEn": "Tic Tac Bomb",
+                "emoji": "⭕",
+                "type": "pvp",
+                "description": "PvP! Place bomb then play tic-tac-toe. 3-in-a-row = $2.5M!",
+                "winReward": 2500000,
+                "weight": 3,
+                "rarity": "rare"
+            },
+            {
+                "id": "mg_supercash",
+                "name": "Supercash",
+                "nameEn": "Supercash",
+                "emoji": "💰",
+                "type": "luck",
+                "description": "Pick 8 of 20 spaces! Win $100k-$1M per space!",
+                "winReward": 5000000,
+                "weight": 2,
+                "rarity": "rare"
+            },
+            {
+                "id": "mg_overflow",
+                "name": "Overflow",
+                "nameEn": "Overflow",
+                "emoji": "🌊",
+                "type": "luck",
+                "description": "Sum must stay under 21! Go over = lose! Perfect 21 = $10M!",
+                "winReward": 5000000,
+                "weight": 2,
+                "rarity": "rare"
+            },
+            {
+                "id": "mg_tripleplay",
+                "name": "Triple Play",
+                "nameEn": "Triple Play",
+                "emoji": "3️⃣",
+                "type": "luck",
+                "description": "Find 3 matching symbols in 3x3 grid! Max $25M!",
+                "winReward": 10000000,
+                "weight": 1,
+                "rarity": "epic"
+            },
+            {
+                "id": "mg_hypercube",
+                "name": "Hypercube",
+                "nameEn": "Hypercube",
+                "emoji": "🧊",
+                "type": "luck",
+                "description": "Navigate 4D cube! Find exit = $50M! Hit trap = lose all!",
+                "winReward": 50000000,
+                "weight": 0.5,
+                "rarity": "epic"
+            },
+            {
+                "id": "mg_moneycards",
+                "name": "Money Cards",
+                "nameEn": "Money Cards",
+                "emoji": "🃏",
+                "type": "luck",
+                "description": "Find 4 money cards in deck! Joker = instant $100M!",
+                "winReward": 25000000,
+                "weight": 1,
+                "rarity": "epic"
+            },
+            {
+                "id": "mg_spectrum",
+                "name": "Spectrum",
+                "nameEn": "Spectrum",
+                "emoji": "🌈",
+                "type": "skill",
+                "description": "Match 7 colors in sequence! Perfect = $100M!",
+                "winReward": 100000000,
+                "weight": 0.3,
+                "rarity": "legendary"
+            },
+            {
+                "id": "mg_stardust",
+                "name": "Stardust",
+                "nameEn": "Stardust",
+                "emoji": "⭐",
+                "type": "luck",
+                "description": "Collect stars from 25 spaces! 5 stars = $250M!",
+                "winReward": 250000000,
+                "weight": 0.2,
+                "rarity": "legendary"
+            },
+            {
+                "id": "mg_digitalfortress",
+                "name": "Digital Fortress",
+                "nameEn": "Digital Fortress",
+                "emoji": "🔐",
+                "type": "skill",
+                "description": "Crack 8-digit code! Each digit = $50M. Complete = $1B!",
+                "winReward": 1000000000,
+                "weight": 0.1,
+                "rarity": "legendary"
+            },
+            {
+                "id": "mg_dealornodeal",
+                "name": "Deal or No Deal",
+                "nameEn": "Deal or No Deal",
+                "emoji": "💼",
+                "type": "luck",
+                "description": "22 boxes with cash! Open boxes, accept offers, or take your box!",
+                "winReward": 3000000,
+                "weight": 4,
+                "rarity": "uncommon"
+            },
+            {
+                "id": "mg_gamble",
+                "name": "The Gamble",
+                "nameEn": "The Gamble",
+                "emoji": "🎰",
+                "type": "luck",
+                "description": "Pick spaces! Next must be higher or lose! Max $2.5M+",
+                "winReward": 1500000,
+                "weight": 3,
+                "rarity": "uncommon"
+            },
+            {
+                "id": "mg_boostersmash",
+                "name": "Booster Smash",
+                "nameEn": "Booster Smash",
+                "emoji": "💥",
+                "type": "luck",
+                "description": "Earn tokens for boost! Find 2 bombs = lose boost!",
+                "winReward": 0,
+                "weight": 2,
+                "rarity": "rare"
+            },
+            {
+                "id": "mg_strikeitrich",
+                "name": "Strike it Rich",
+                "nameEn": "Strike it Rich",
+                "emoji": "🎯",
+                "type": "luck",
+                "description": "Get 3 of a kind! 15 spaces. Top prize $5M!",
+                "winReward": 2500000,
+                "weight": 3,
+                "rarity": "uncommon"
+            },
+            {
+                "id": "mg_shutthebox",
+                "name": "Shut the Box",
+                "nameEn": "Shut the Box",
+                "emoji": "🎲",
+                "type": "skill",
+                "description": "Roll 2 dice, close digits! Close all 9 = $3M!",
+                "winReward": 3000000,
+                "weight": 2,
+                "rarity": "rare"
+            },
+            {
+                "id": "mg_zilch",
+                "name": "Zilch",
+                "nameEn": "Zilch",
+                "emoji": "🎲",
+                "type": "luck",
+                "description": "Roll 6 dice! Score combos. No score = ZILCH!",
+                "winReward": 5000000,
+                "weight": 2,
+                "rarity": "rare"
+            },
+            {
+                "id": "mg_minefieldmulti",
+                "name": "Minefield Multiplier",
+                "nameEn": "Minefield Multiplier",
+                "emoji": "💣",
+                "type": "luck",
+                "description": "21 spaces with x1-x12! Bombs added each stage!",
+                "winReward": 10000000,
+                "weight": 1,
+                "rarity": "epic"
+            },
+            {
+                "id": "mg_dangerdice",
+                "name": "Danger Dice",
+                "nameEn": "Danger Dice",
+                "emoji": "🎲",
+                "type": "luck",
+                "description": "Roll 8 dice! Avoid 1s. Each point = money!",
+                "winReward": 1000000,
+                "weight": 3,
+                "rarity": "uncommon"
+            },
+            {
+                "id": "mg_splitwinnings",
+                "name": "Split Winnings",
+                "nameEn": "Split Winnings",
+                "emoji": "💰",
+                "type": "luck",
+                "description": "Build 3 banks from 2 boards! Win your largest!",
+                "winReward": 5000000,
+                "weight": 2,
+                "rarity": "rare"
+            },
+            {
+                "id": "mg_colourof money",
+                "name": "Colour of Money",
+                "nameEn": "Colour of Money",
+                "emoji": "🎨",
+                "type": "luck",
+                "description": "Match colors! Build a pot! Max $10M!",
+                "winReward": 5000000,
+                "weight": 2,
+                "rarity": "rare"
+            },
+            {
+                "id": "mg_closeshave",
+                "name": "Close Shave",
+                "nameEn": "Close Shave",
+                "emoji": "💈",
+                "type": "skill",
+                "description": "Get as close to target as possible! Precision wins!",
+                "winReward": 2000000,
+                "weight": 3,
+                "rarity": "uncommon"
+            },
+            {
+                "id": "mg_doubletrouble",
+                "name": "Double Trouble",
+                "nameEn": "Double Trouble",
+                "emoji": "⏬",
+                "type": "luck",
+                "description": "Find doubles! Avoid bombs! Build your bank!",
+                "winReward": 3000000,
+                "weight": 3,
+                "rarity": "uncommon"
+            },
+            {
+                "id": "mg_fiftyyarddash",
+                "name": "Fifty Yard Dash",
+                "nameEn": "Fifty Yard Dash",
+                "emoji": "🏃",
+                "type": "luck",
+                "description": "Race 50 yards! Avoid obstacles! Max $5M!",
+                "winReward": 5000000,
+                "weight": 2,
+                "rarity": "rare"
+            },
+            {
+                "id": "mg_globetrotter",
+                "name": "Globetrotter",
+                "nameEn": "Globetrotter",
+                "emoji": "🌍",
+                "type": "skill",
+                "description": "Travel the world! Answer geography questions!",
+                "winReward": 3000000,
+                "weight": 2,
+                "rarity": "rare"
+            },
+            {
+                "id": "mg_loserwheel",
+                "name": "Loser Wheel",
+                "nameEn": "Loser Wheel",
+                "emoji": "☠️",
+                "type": "luck",
+                "description": "Spin wheel of penalties! Lose less = win more!",
+                "winReward": 1000000,
+                "weight": 1,
+                "rarity": "epic"
+            },
+            {
+                "id": "mg_openpass",
+                "name": "Open Pass",
+                "nameEn": "Open Pass",
+                "emoji": "🔓",
+                "type": "luck",
+                "description": "Unlock spaces! Find keys! Max $10M!",
+                "winReward": 10000000,
+                "weight": 1,
+                "rarity": "epic"
+            },
+            {
+                "id": "mg_ftrots",
+                "name": "FTROTS",
+                "nameEn": "For The Rest Of The Season",
+                "emoji": "🎪",
+                "type": "special",
+                "description": "Season-long benefit! Ultra rare!",
+                "winReward": 0,
+                "weight": 0.05,
+                "rarity": "legendary"
+            },
+            {
+                "id": "mg_theoffer",
+                "name": "The Offer",
+                "nameEn": "The Offer",
+                "emoji": "💵",
+                "type": "luck",
+                "description": "Accept or refuse mysterious offers! Risk vs reward!",
+                "winReward": 5000000,
+                "weight": 1,
+                "rarity": "epic"
+            },
+            {
+                "id": "mg_thecommissioner",
+                "name": "The Commissioner",
+                "nameEn": "The Commissioner",
+                "emoji": "👨‍⚖️",
+                "type": "special",
+                "description": "Special event minigame! Unique rules!",
+                "winReward": 10000000,
+                "weight": 0.5,
+                "rarity": "epic"
+            },
+            {
+                "id": "mg_bowsertictacbomb",
+                "name": "Bowser's Tic Tac Bomb",
+                "nameEn": "Bowser's Tic Tac Bomb",
+                "emoji": "👹",
+                "type": "pvp",
+                "description": "Bowser-themed tic-tac-toe! Place bomb, play game!",
+                "winReward": 2500000,
+                "weight": 1,
+                "rarity": "epic"
+            },
+            {
+                "id": "mg_optimise",
+                "name": "(O)ptimise",
+                "nameEn": "(O)ptimise",
+                "emoji": "🎯",
+                "type": "skill",
+                "description": "3 color ladders! Pick spheres 1-4 to build ladders. Draw 1 ticket to win!",
+                "winReward": 2000000,
+                "weight": 2,
+                "rarity": "rare"
+            }
+        ],
+        "items": [
+            {
+                "id": "item_defuse",
+                "name": "Defuse",
+                "nameEn": "Defuse Bomb",
+                "emoji": "🔧",
+                "effect": "defuse",
+                "weight": 3,
+                "rarity": "common"
+            },
+            {
+                "id": "item_peek",
+                "name": "Peek",
+                "nameEn": "Peek 1 Square (3 turns)",
+                "emoji": "👁️",
+                "effect": "peek",
+                "weight": 4,
+                "rarity": "common",
+                "duration": 3
+            },
+            {
+                "id": "item_reverse",
+                "name": "ย้อนศร",
+                "nameEn": "Reverse Turn",
+                "emoji": "⏮️",
+                "effect": "reverse_turn",
+                "weight": 2,
+                "rarity": "common"
+            },
+            {
+                "id": "item_save_mult",
+                "name": "Save ตัวคูณ",
+                "nameEn": "Save Multiplier",
+                "emoji": "🛡️",
+                "effect": "save_multiplier",
+                "weight": 2,
+                "rarity": "common"
+            }
+        ]
+    },
+    "rarityWeights": {
+        "common": 70,
+        "uncommon": 20,
+        "rare": 7,
+        "epic": 2,
+        "legendary": 1
+    }
+}
