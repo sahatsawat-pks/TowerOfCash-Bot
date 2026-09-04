@@ -2,6 +2,8 @@ const { MinigameMasterSession } = require('../Season2/MinigameMaster');
 const { GameState } = require('../gameManager');
 const GameUI = require('../gameUI');
 const Season2Minigames = require('../Season2/Season2Minigames');
+const BossFloors = require('../Season2/BossFloors');
+const { TowerAchievements, ACHIEVEMENTS } = require('../TowerAchievements');
 
 describe('Season 2 and Minigame Master Tests', () => {
   describe('GameState Season Modes', () => {
@@ -224,6 +226,121 @@ describe('Season 2 and Minigame Master Tests', () => {
       expect(resultButtons[0].components[0].data.custom_id).toBe('s2_blackjack_continue');
     });
   });
+
+  describe('Season 2 Boss Floors Encounters (NO CLUE)', () => {
+    test('Architect Boss has hidden cipher with no clue in embed, and tests Mastermind logic', () => {
+      const state = BossFloors.startArchitectBoss('u1', 'Player', 1000000);
+      state.targetSequence = ['Delta', 'Delta', 'Delta'];
+      expect(state.targetSequence.length).toBe(3);
+      expect(state.attemptsRemaining).toBe(3);
+
+      const embed = BossFloors.createArchitectEmbed(state);
+      // Ensure the target sequence is NOT leaked in the embed description
+      expect(embed.data.description).toContain('???');
+      expect(embed.data.description).not.toContain(state.targetSequence.join(' ➔ '));
+
+      // Test incorrect 3-node sequence
+      BossFloors.pressArchitectNode(state, 'Alpha');
+      BossFloors.pressArchitectNode(state, 'Beta');
+      BossFloors.pressArchitectNode(state, 'Gamma');
+
+      expect(state.attemptHistory.length).toBe(1);
+      expect(state.attemptHistory[0].sequence).toEqual(['Alpha', 'Beta', 'Gamma']);
+      expect(state.attemptsRemaining).toBe(state.won ? 3 : 2);
+    });
+
+    test('Loan Shark Boss rolls blind into steel cup and handles duels', () => {
+      const state = BossFloors.startLoanSharkBoss('u1', 'Player', 1000000);
+      expect(state.hiddenSharkRoll).toBeGreaterThanOrEqual(3);
+      expect(state.currentRound).toBe(1);
+
+      const embed = BossFloors.createLoanSharkEmbed(state);
+      expect(embed.data.description).toContain('🔒 ❓ 🔒');
+
+      BossFloors.duelRoundLoanShark(state, 'overdrive');
+      expect(state.roundHistory.length).toBe(1);
+      expect(state.roundHistory[0].style).toBe('overdrive');
+    });
+
+    test('Grand Operator Boss features 4 blind vaults and Operator Gambit phase', () => {
+      const state = BossFloors.startGrandOperatorBoss('u1', 'Player', 10000000);
+      expect(state.vaults.length).toBe(4);
+      expect(state.phase).toBe('pick');
+
+      const pickButtons = BossFloors.createOperatorButtons(state);
+      expect(pickButtons[0].components.length).toBe(4);
+
+      // Player selects Vault 1
+      BossFloors.selectOperatorVault(state, 1);
+      expect(state.phase).toBe('gambit');
+      expect(state.destroyedVaultIndex).not.toBeNull();
+      expect(state.destroyedVaultIndex).not.toBe(1);
+
+      const gambitEmbed = BossFloors.createOperatorEmbed(state);
+      expect(gambitEmbed.data.description).toContain('THE OPERATOR VAPORIZES');
+
+      const gambitButtons = BossFloors.createOperatorButtons(state);
+      expect(gambitButtons[0].components.some(b => b.data.custom_id === 's2_operator_gambit_stick')).toBe(true);
+      expect(gambitButtons[0].components.some(b => b.data.custom_id === 's2_operator_gambit_buyout')).toBe(true);
+
+      // Player takes buyout
+      BossFloors.operatorGambit(state, 'buyout');
+      expect(state.phase).toBe('reveal');
+      expect(state.isCompleted).toBe(true);
+      expect(state.won).toBe(true);
+      expect(state.chosenVault.rewardBonus).toBe(10000000);
+    });
+  });
+
+  describe('Season 2 & Minigame Master Achievements', () => {
+    test('defines all new Season 2 and Minigame Master achievements in ACHIEVEMENTS catalog', () => {
+      const expectedIds = [
+        'SEASON_2_SUMMIT',
+        'PACT_MASTER',
+        'MGM_CHAMPION',
+        'MGM_HIGH_ROLLER',
+        'ELITE_GAMBLER',
+        'ARCHITECT_BREACHER',
+        'SHARK_SLAYER',
+        'OPERATOR_DETHRONED'
+      ];
+
+      for (const id of expectedIds) {
+        expect(ACHIEVEMENTS[id]).toBeDefined();
+        expect(ACHIEVEMENTS[id].id).toBe(id);
+        expect(ACHIEVEMENTS[id].name).toBeTruthy();
+        expect(ACHIEVEMENTS[id].description).toBeTruthy();
+        expect(ACHIEVEMENTS[id].emoji).toBeTruthy();
+      }
+    });
+
+    test('TowerAchievements awards and records Season 2 achievements correctly', async () => {
+      const achievements = new TowerAchievements();
+      const testUserId = 'test_user_s2_' + Math.random().toString(36).substring(2);
+      const testGuildId = 'test_guild_s2_achieve';
+
+      const res = await achievements.awardAchievement(
+        'ARCHITECT_BREACHER',
+        testUserId,
+        'TestUser',
+        testGuildId
+      );
+      expect(res).toBe(true);
+
+      const playerAchievements = await achievements.getPlayerAchievements(testUserId, testGuildId);
+      expect(playerAchievements.some(a => a.id === 'ARCHITECT_BREACHER')).toBe(true);
+    });
+
+    test('GameUI.createContinueButton creates a valid action row', () => {
+      const row = GameUI.createContinueButton();
+      expect(row).toBeDefined();
+      expect(row.length).toBeGreaterThan(0);
+      expect(row[0].components[0].data.custom_id).toBe('continue_game');
+    });
+  });
 });
+
+
+
 
 

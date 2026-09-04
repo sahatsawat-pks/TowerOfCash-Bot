@@ -5964,8 +5964,8 @@ client.on('interactionCreate', async (interaction) => {
       await handleRTABMinigameAction(interaction);
     // Season 2 Boss Buttons
     } else if (customId.startsWith('s2_architect_node_')) {
-      const nodeIndex = parseInt(customId.replace('s2_architect_node_', ''));
-      await handleS2ArchitectNode(interaction, game, nodeIndex);
+      const nodeName = customId.replace('s2_architect_node_', '');
+      await handleS2ArchitectNode(interaction, game, nodeName);
     } else if (customId === 's2_boss_architect_continue') {
       await handleS2BossArchitectContinue(interaction, game);
     } else if (customId.startsWith('s2_shark_roll_')) {
@@ -5976,6 +5976,8 @@ client.on('interactionCreate', async (interaction) => {
     } else if (customId.startsWith('s2_operator_vault_')) {
       const vaultIndex = parseInt(customId.replace('s2_operator_vault_', ''));
       await handleS2OperatorPick(interaction, game, vaultIndex);
+    } else if (customId.startsWith('s2_operator_gambit_')) {
+      await handleS2OperatorGambit(interaction, game, customId);
     } else if (customId === 's2_boss_operator_continue') {
       await handleS2BossOperatorContinue(interaction, game);
     // Season 2 Minigame Buttons
@@ -7139,6 +7141,11 @@ async function continueGameAfterMinigame(interaction, game) {
     session.recordGameEarnings(game.userId, minigameType, earned);
     session.currentMinigameIndex++;
 
+    const p = session.players.get(game.userId);
+    if (p && p.totalEarnings >= 5000000) {
+      await towerAchievements.awardAchievement('MGM_HIGH_ROLLER', p.userId, p.username, interaction.guildId, interaction.channel);
+    }
+
     // Clean up temporary game so channel is free
     gameManager.endGame(game.channelId);
 
@@ -7170,7 +7177,11 @@ async function continueGameAfterMinigame(interaction, game) {
 
     // Show game over message
     const endEmbed = GameUI.createGameEndEmbed(game, 'no_money', 0);
-    await interaction.followUp({ embeds: [endEmbed], components: [] });
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp({ embeds: [endEmbed], components: [] });
+    } else {
+      await interaction.update({ embeds: [endEmbed], components: [] });
+    }
 
     // End the game
     gameManager.endGame(interaction.channelId);
@@ -7194,13 +7205,21 @@ async function continueGameAfterMinigame(interaction, game) {
     // Show round end decision (player can choose to continue or stop)
     const roundEndEmbed = GameUI.createRoundEndEmbed(game);
     const roundEndButtons = GameUI.createRoundEndButtons(game);
-    await interaction.followUp({ embeds: [roundEndEmbed], components: roundEndButtons });
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp({ embeds: [roundEndEmbed], components: roundEndButtons });
+    } else {
+      await interaction.update({ embeds: [roundEndEmbed], components: roundEndButtons });
+    }
     return;
   }
 
   // Show continue button to move to next floor
   const continueButtons = GameUI.createContinueButton();
-  await interaction.followUp({ content: '➡️ **Continue to next floor...**', components: continueButtons });
+  if (interaction.replied || interaction.deferred) {
+    await interaction.followUp({ content: '➡️ **Continue to next floor...**', components: continueButtons });
+  } else {
+    await interaction.update({ content: '➡️ **Continue to next floor...**', embeds: [], components: continueButtons });
+  }
 }
 
 async function handleContinueToNextRound(interaction, game) {
@@ -7278,9 +7297,9 @@ async function startCurrentFloorOrBoss(interaction, game) {
 }
 
 // Floor 10 Boss: The Architect
-async function handleS2ArchitectNode(interaction, game, nodeIndex) {
+async function handleS2ArchitectNode(interaction, game, nodeName) {
   if (!game || !game.bossFloorState) return;
-  BossFloors.playArchitectNode(game.bossFloorState, nodeIndex);
+  BossFloors.pressArchitectNode(game.bossFloorState, nodeName);
   const embed = BossFloors.createArchitectEmbed(game.bossFloorState);
   const buttons = BossFloors.createArchitectButtons(game.bossFloorState);
   await interaction.update({ embeds: [embed], components: buttons });
@@ -7288,10 +7307,14 @@ async function handleS2ArchitectNode(interaction, game, nodeIndex) {
 
 async function handleS2BossArchitectContinue(interaction, game) {
   if (!game || !game.bossFloorState) return;
-  if (game.bossFloorState.won) {
-    game.totalMoney += 1500000;
+  const state = game.bossFloorState;
+  if (state.won) {
+    game.totalMoney += state.reward || 2500000;
+    await towerAchievements.awardAchievement('ARCHITECT_BREACHER', game.userId, game.username, interaction.guildId, interaction.channel);
     if (!game.activeEffects) game.activeEffects = [];
     game.activeEffects.push({ type: 'revealNext2', duration: 2, floorsRemaining: 2 });
+  } else {
+    game.totalMoney = Math.max(0, game.totalMoney - (state.penalty || Math.floor(game.totalMoney * 0.25)));
   }
   game.bossFloorState = null;
   game.moveToNextFloor();
@@ -7301,7 +7324,7 @@ async function handleS2BossArchitectContinue(interaction, game) {
 // Floor 20 Boss: The Loan Shark
 async function handleS2SharkRoll(interaction, game, strategy) {
   if (!game || !game.bossFloorState) return;
-  BossFloors.playLoanSharkRoll(game.bossFloorState, strategy);
+  BossFloors.duelRoundLoanShark(game.bossFloorState, strategy);
   const embed = BossFloors.createLoanSharkEmbed(game.bossFloorState);
   const buttons = BossFloors.createLoanSharkButtons(game.bossFloorState);
   await interaction.update({ embeds: [embed], components: buttons });
@@ -7312,6 +7335,7 @@ async function handleS2BossSharkContinue(interaction, game) {
   const state = game.bossFloorState;
   if (state.won) {
     game.totalMoney += state.collateral;
+    await towerAchievements.awardAchievement('SHARK_SLAYER', game.userId, game.username, interaction.guildId, interaction.channel);
     if (!game.activeEffects) game.activeEffects = [];
     game.activeEffects.push({ type: 'tax_immunity', duration: 5, floorsRemaining: 5 });
   } else {
@@ -7325,7 +7349,25 @@ async function handleS2BossSharkContinue(interaction, game) {
 // Floor 30 Boss: The Grand Operator
 async function handleS2OperatorPick(interaction, game, vaultIndex) {
   if (!game || !game.bossFloorState) return;
-  BossFloors.playOperatorVault(game.bossFloorState, vaultIndex);
+  BossFloors.selectOperatorVault(game.bossFloorState, vaultIndex);
+  const embed = BossFloors.createOperatorEmbed(game.bossFloorState);
+  const buttons = BossFloors.createOperatorButtons(game.bossFloorState);
+  await interaction.update({ embeds: [embed], components: buttons });
+}
+
+async function handleS2OperatorGambit(interaction, game, customId) {
+  if (!game || !game.bossFloorState) return;
+  let action = 'stick';
+  let switchVaultIndex = null;
+
+  if (customId === 's2_operator_gambit_buyout') {
+    action = 'buyout';
+  } else if (customId.startsWith('s2_operator_gambit_switch_')) {
+    action = 'switch';
+    switchVaultIndex = parseInt(customId.replace('s2_operator_gambit_switch_', ''));
+  }
+
+  BossFloors.operatorGambit(game.bossFloorState, action, switchVaultIndex);
   const embed = BossFloors.createOperatorEmbed(game.bossFloorState);
   const buttons = BossFloors.createOperatorButtons(game.bossFloorState);
   await interaction.update({ embeds: [embed], components: buttons });
@@ -7334,10 +7376,19 @@ async function handleS2OperatorPick(interaction, game, vaultIndex) {
 async function handleS2BossOperatorContinue(interaction, game) {
   if (!game || !game.bossFloorState) return;
   const state = game.bossFloorState;
-  if (state.selectedVault) {
-    if (state.selectedVault.type === 'jackpot') game.totalMoney += state.selectedVault.value;
-    else if (state.selectedVault.type === 'safe') game.totalMoney += state.selectedVault.value;
-    else if (state.selectedVault.type === 'trap') game.totalMoney = Math.floor(game.totalMoney * 0.5);
+  const chosen = state.chosenVault || state.selectedVault;
+  if (chosen) {
+    if (chosen.type === 'jackpot' || chosen.type === 'safe' || chosen.type === 'buyout') {
+      game.totalMoney += (chosen.rewardBonus || chosen.value || 0);
+      await towerAchievements.awardAchievement('OPERATOR_DETHRONED', game.userId, game.username, interaction.guildId, interaction.channel);
+      if (game.isSeason2) {
+        await towerAchievements.awardAchievement('SEASON_2_SUMMIT', game.userId, game.username, interaction.guildId, interaction.channel);
+      }
+    } else if (chosen.type === 'trap') {
+      game.totalMoney = Math.max(0, game.totalMoney - (chosen.penalty || Math.floor(game.totalMoney * 0.5)));
+    } else if (chosen.type === 'abyss') {
+      game.totalMoney = 0;
+    }
   }
   game.bossFloorState = null;
   game.moveToNextFloor();
@@ -7365,6 +7416,7 @@ async function handleS2LaserContinue(interaction, game) {
   const state = game.season2MinigameState;
   if (state.isSuccess) {
     game.totalMoney += 5000000;
+    await towerAchievements.awardAchievement('ELITE_GAMBLER', game.userId, game.username, interaction.guildId, interaction.channel);
   } else {
     game.totalMoney = Math.max(0, game.totalMoney - (state.lostAmount || Math.floor(game.totalMoney * 0.5)));
   }
@@ -7393,6 +7445,7 @@ async function handleS2AuctionContinue(interaction, game) {
   const state = game.season2MinigameState;
   if (state.winner && state.winner.isPlayer) {
     game.totalMoney = Math.max(0, game.totalMoney - state.playerBid);
+    await towerAchievements.awardAchievement('ELITE_GAMBLER', game.userId, game.username, interaction.guildId, interaction.channel);
     if (!game.activeEffects) game.activeEffects = [];
     if (state.artifact && state.artifact.id) {
       if (state.artifact.id === 'golden_aegis') {
@@ -7431,6 +7484,7 @@ async function handleS2BombContinue(interaction, game) {
   const state = game.season2MinigameState;
   if (state.result === 'jackpot') {
     game.totalMoney += (state.reward || 2500000);
+    await towerAchievements.awardAchievement('ELITE_GAMBLER', game.userId, game.username, interaction.guildId, interaction.channel);
     if (!game.activeEffects) game.activeEffects = [];
     game.activeEffects.push({ type: 'gameOverImmunity', duration: 3, floorsRemaining: 3 });
   } else if (state.result === 'detonated') {
@@ -7468,6 +7522,9 @@ async function handleS2BlackjackContinue(interaction, game) {
   if (state.payout) {
     game.totalMoney = Math.max(0, game.totalMoney + state.payout);
   }
+  if (state.result === 'win' || state.result === 'blackjack') {
+    await towerAchievements.awardAchievement('ELITE_GAMBLER', game.userId, game.username, interaction.guildId, interaction.channel);
+  }
   game.season2MinigameState = null;
   await continueGameAfterMinigame(interaction, game);
 }
@@ -7476,6 +7533,9 @@ async function handleS2BlackjackContinue(interaction, game) {
 async function handleS2PactSelect(interaction, game, pactId) {
   if (!game) return;
   AscentPacts.applyPact(game, pactId);
+  if (game.acceptedPacts && game.acceptedPacts.length >= 5) {
+    await towerAchievements.awardAchievement('PACT_MASTER', game.userId, game.username, interaction.guildId, interaction.channel);
+  }
   game.startNewRound();
   const embed = GameUI.createFloorSelectionEmbed(game);
   const buttons = GameUI.createFloorSelectionButtons(game);
@@ -7646,6 +7706,16 @@ async function handleS2MGMAction(interaction, action) {
       session.advanceToRound3();
     } else {
       const summaryEmbed = session.createRoundSummaryEmbed(3);
+      const leaderboard = session.getLeaderboard();
+      if (leaderboard.length > 0) {
+        const champ = leaderboard[0];
+        await towerAchievements.awardAchievement('MGM_CHAMPION', champ.userId, champ.username, interaction.guildId, interaction.channel);
+      }
+      for (const p of leaderboard) {
+        if (p.totalEarnings >= 5000000) {
+          await towerAchievements.awardAchievement('MGM_HIGH_ROLLER', p.userId, p.username, interaction.guildId, interaction.channel);
+        }
+      }
       minigameMasterSessions.delete(interaction.channelId);
       return interaction.update({
         content: '🏆 **TOURNAMENT COMPLETE!** Hail the Minigame Master Champion!',
@@ -7661,6 +7731,16 @@ async function handleS2MGMAction(interaction, action) {
     return interaction.reply({ embeds: [summaryEmbed], ephemeral: true });
   } else if (action === 'close') {
     const summaryEmbed = session.createRoundSummaryEmbed(session.round);
+    const leaderboard = session.getLeaderboard();
+    if (leaderboard.length > 0 && session.round >= 2) {
+      const champ = leaderboard[0];
+      await towerAchievements.awardAchievement('MGM_CHAMPION', champ.userId, champ.username, interaction.guildId, interaction.channel);
+    }
+    for (const p of leaderboard) {
+      if (p.totalEarnings >= 5000000) {
+        await towerAchievements.awardAchievement('MGM_HIGH_ROLLER', p.userId, p.username, interaction.guildId, interaction.channel);
+      }
+    }
     minigameMasterSessions.delete(interaction.channelId);
     return interaction.update({
       content: '🏆 **Tournament Concluded!** Thank you for playing Minigame Master!',

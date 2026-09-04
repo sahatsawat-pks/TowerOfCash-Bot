@@ -184,6 +184,46 @@ const ACHIEVEMENTS = {
     bitLocation: 20,
     emoji: '🎲'
   },
+  SEASON_2_SUMMIT: {
+    id: 'SEASON_2_SUMMIT',
+    name: 'Apex Ascendant',
+    description: 'Complete all 30 floors of Season 2 (The Apex Tower)',
+    type: AchievementType.MILESTONE,
+    bitLocation: 21,
+    emoji: '🌟'
+  },
+  PACT_MASTER: {
+    id: 'PACT_MASTER',
+    name: "Devil's Bargain",
+    description: 'Accept 5 or more Ascent Pacts in a single Season 2 climb',
+    type: AchievementType.MILESTONE,
+    bitLocation: 22,
+    emoji: '📜'
+  },
+  MGM_CHAMPION: {
+    id: 'MGM_CHAMPION',
+    name: 'Minigame Master Champion',
+    description: 'Conquer a Minigame Master tournament',
+    type: AchievementType.MILESTONE,
+    bitLocation: 23,
+    emoji: '🎮'
+  },
+  MGM_HIGH_ROLLER: {
+    id: 'MGM_HIGH_ROLLER',
+    name: 'Gauntlet Millionaire',
+    description: 'Bank over $5,000,000 in Minigame Master',
+    type: AchievementType.MILESTONE,
+    bitLocation: 24,
+    emoji: '💰'
+  },
+  ELITE_GAMBLER: {
+    id: 'ELITE_GAMBLER',
+    name: 'Season 2 Elite',
+    description: 'Win an Elite Season 2 Minigame (Laser, Auction, Bomb, or Blackjack)',
+    type: AchievementType.MILESTONE,
+    bitLocation: 25,
+    emoji: '⚡'
+  },
 
   // EVENT ACHIEVEMENTS (0-31)
   MART_ROBBER: {
@@ -409,6 +449,30 @@ const ACHIEVEMENTS = {
     type: AchievementType.EVENT,
     bitLocation: 27,
     emoji: '9️⃣'
+  },
+  ARCHITECT_BREACHER: {
+    id: 'ARCHITECT_BREACHER',
+    name: 'Master Codebreaker',
+    description: 'Bypass Floor 10 Boss (The Architect) without any clues',
+    type: AchievementType.EVENT,
+    bitLocation: 28,
+    emoji: '🔐'
+  },
+  SHARK_SLAYER: {
+    id: 'SHARK_SLAYER',
+    name: 'Debt Annihilator',
+    description: 'Defeat Floor 20 Boss (The Loan Shark) in his blind duel',
+    type: AchievementType.EVENT,
+    bitLocation: 29,
+    emoji: '🦈'
+  },
+  OPERATOR_DETHRONED: {
+    id: 'OPERATOR_DETHRONED',
+    name: 'Grand Champion',
+    description: 'Survive and defeat Floor 30 Boss (The Grand Operator)',
+    type: AchievementType.EVENT,
+    bitLocation: 30,
+    emoji: '👑'
   },
 
   // MINIGAME ACHIEVEMENTS (0-31) - Hard conditions
@@ -1399,6 +1463,32 @@ class TowerAchievements {
           );
           if (result) awarded.push('GAMES_1000');
         }
+      }
+
+      // Season 2 Summit - 30 floors completed
+      if (game.isSeason2 && game.floorsCompleted >= 30) {
+        const result = await this.awardAchievement(
+          'SEASON_2_SUMMIT',
+          game.userId,
+          game.username,
+          game.guildId,
+          interaction.channel,
+          { floorsCompleted: game.floorsCompleted }
+        );
+        if (result) awarded.push('SEASON_2_SUMMIT');
+      }
+
+      // Pact Master - 5+ pacts accepted
+      if (game.isSeason2 && game.acceptedPacts && game.acceptedPacts.length >= 5) {
+        const result = await this.awardAchievement(
+          'PACT_MASTER',
+          game.userId,
+          game.username,
+          game.guildId,
+          interaction.channel,
+          { pactsAccepted: game.acceptedPacts.length }
+        );
+        if (result) awarded.push('PACT_MASTER');
       }
       
       // EVENT ACHIEVEMENTS
