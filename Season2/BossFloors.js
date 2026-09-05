@@ -40,10 +40,20 @@ class BossFloors {
   static pressArchitectNode(state, nodeName) {
     if (state.isCompleted) return state;
 
-    state.inputSequence.push(nodeName);
+    const allNodes = ['Alpha', 'Beta', 'Gamma', 'Delta'];
+    let cleanNode = nodeName;
+    if (typeof nodeName === 'number' && !isNaN(nodeName)) {
+      cleanNode = allNodes[nodeName] || 'Alpha';
+    } else if (typeof nodeName === 'string' && /^\d+$/.test(nodeName)) {
+      cleanNode = allNodes[parseInt(nodeName)] || 'Alpha';
+    }
 
-    // When 3 nodes have been entered for this attempt
-    if (state.inputSequence.length === 3) {
+    state.inputSequence.push(cleanNode);
+
+    const targetLen = (state.targetSequence && state.targetSequence.length) || 3;
+
+    // When all nodes have been entered for this attempt
+    if (state.inputSequence.length === targetLen) {
       const isExactMatch = state.inputSequence.every((val, idx) => val === state.targetSequence[idx]);
 
       if (isExactMatch) {
@@ -59,7 +69,7 @@ class BossFloors {
       const targetCopy = [...state.targetSequence];
       const inputCopy = [...state.inputSequence];
 
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < targetLen; i++) {
         if (inputCopy[i] === targetCopy[i]) {
           exact++;
         } else if (targetCopy.includes(inputCopy[i])) {
