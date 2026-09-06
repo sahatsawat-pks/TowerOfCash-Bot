@@ -946,8 +946,15 @@ class TowerAchievements {
    * Check if player has an achievement
    */
   hasAchievement(record, achievement) {
-    const flags = record[achievement.type.name];
-    return (flags >>> achievement.bitLocation) % 2 === 1;
+    if (!record) return false;
+    if (typeof achievement === 'string') {
+      achievement = ACHIEVEMENTS[achievement];
+    }
+    if (!achievement || !achievement.type) return false;
+    const typeName = achievement.type.name || (typeof achievement.type === 'string' ? achievement.type : null);
+    if (!typeName) return false;
+    const flags = record[typeName];
+    return flags !== undefined ? (flags >>> achievement.bitLocation) % 2 === 1 : false;
   }
 
   /**
@@ -1692,7 +1699,8 @@ class TowerAchievements {
         }
         
         // Award HIDEOUT_FIRST_TRY only if player doesn't have it yet (truly first time playing)
-        const hasFirstTry = await this.hasAchievement(game.userId, game.guildId, 'HIDEOUT_FIRST_TRY');
+        const hideoutRecord = await this.getAchievementRecord(game.userId, game.guildId);
+        const hasFirstTry = hideoutRecord ? this.hasAchievement(hideoutRecord, ACHIEVEMENTS.HIDEOUT_FIRST_TRY) : false;
         if (!hasFirstTry) {
           const result = await this.awardAchievement(
             'HIDEOUT_FIRST_TRY',

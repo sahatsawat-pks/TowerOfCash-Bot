@@ -7299,7 +7299,11 @@ async function startCurrentFloorOrBoss(interaction, game) {
 // Floor 10 Boss: The Architect
 async function handleS2ArchitectNode(interaction, game, nodeName) {
   if (!game || !game.bossFloorState) return;
-  BossFloors.pressArchitectNode(game.bossFloorState, nodeName);
+  if (typeof BossFloors.pressArchitectNode === 'function') {
+    BossFloors.pressArchitectNode(game.bossFloorState, nodeName);
+  } else if (typeof BossFloors.playArchitectNode === 'function') {
+    BossFloors.playArchitectNode(game.bossFloorState, nodeName);
+  }
   const embed = BossFloors.createArchitectEmbed(game.bossFloorState);
   const buttons = BossFloors.createArchitectButtons(game.bossFloorState);
   await interaction.update({ embeds: [embed], components: buttons });
